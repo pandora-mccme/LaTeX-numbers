@@ -16,6 +16,8 @@ executable LaTeX-numbers
                      , OverloadedStrings
   build-depends:       base >=4.8
                      , text >=1.2
+                     , split
                      , turtle
+                     , system-filepath
                      , foldl
   default-language:    Haskell2010
