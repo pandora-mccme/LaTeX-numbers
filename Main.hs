@@ -63,7 +63,22 @@ isBeginEnd a =
 
 -- Tagged with @False@ for text in dollars.
 splitClassify :: Tagged Text -> [Tagged Text]
-splitClassify = undefined
+splitClassify (Tagged a _) = map (\(Tagged ar br) -> Tagged (T.pack ar) br) result
+  where
+    result = splitClassifyInternal (T.unpack a) (Tagged "" True)
+
+-- Without this inoptimal solution it would be dealt with Lens package. I want to keep it a bit simpler.
+splitClassifyInternal :: String -> Tagged String -> [Tagged String]
+
+splitClassifyInternal [] (Tagged a False) = error "Imbalanced dollars in file."
+
+splitClassifyInternal [] (Tagged a True) = [Tagged a True]
+
+splitClassifyInternal ('$':xs) (Tagged a False) = (Tagged (a <> "$") False) : splitClassifyInternal xs (Tagged "" True)
+
+splitClassifyInternal ('$':xs) (Tagged a True) = (Tagged a True) : splitClassifyInternal xs (Tagged "$" False)
+
+splitClassifyInternal ( x :xs) (Tagged a b) = splitClassifyInternal xs (Tagged (a <> [x]) b)
 
 -- = Regexp replacer.
 
