@@ -1,5 +1,3 @@
--- Fix number processing in LaTeX files.
-
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
@@ -106,6 +104,10 @@ splitClassifyInternal ( x :xs) (Tagged a b) = splitClassifyInternal xs (Tagged (
 
 -- FIXME: dog-nail. I cannot split matched text into chunks via regexp. So I assume (reasonably) we have small number length at both sides.
 -- <FUCK MYSELF>
+
+-- Make newtype.
+type ReplacementData = (Replace, Text)  -- TODO: Rework all @Update@ functions. Move regexps with names to separate objects, make one function and aliases.
+-- Just a bit more focused.
 
 fractionalUpdate :: Tagged Text -> Tagged Text
 fractionalUpdate (Tagged content False) = (Tagged content False)
