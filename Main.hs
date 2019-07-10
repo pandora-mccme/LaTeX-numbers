@@ -83,6 +83,26 @@ splitClassifyInternal ( x :xs) (Tagged a b) = splitClassifyInternal xs (Tagged (
 
 -- = Regexp replacer.
 
+-- Unbounded rules (according to diff for all 38 prototypes of 1st lesson.):
+-- 1. `\(\)` instead of `$$`. Should be handled in classification scheme.
+-- 2. `_\d_\d_\d}` in problem header. Lenient.
+-- 3. Tables: `p{0.24\textwidth}`, `p{4}`, `p{0.24cm}`, `C{4cm}`, `\cline{3-6}`, `\multicolon{2}`, `\multirow{2}`.
+--    Note fixed places - numbers to be reworked can happen in other brackets and in the same line.
+-- 4. Malformed numbers inside dollars.
+--    Easily doable by dog-nail -- Add functions which are not placing dollars, keep only integer rule for them. Switch by side and apply.
+-- 5. `\raisebox{1.5ex}[0cm][0cm]`
+-- 6. `6{,}5` is possible without dollars and escaped brackets.
+-- 7. \includegraphics[width=0.7\linewidth]{cube0.jpg} Double hell. Fuck.
+--    Probably there is really reason for a dictionary of used commands with listed number of arguments.
+--    They must go out during regexps - split by them and move them to another state.
+--    For all commands. This example clearly states it cannot be done in regexps section.
+--
+-- Demarkation:
+-- Solution 1: Add double symbol for classification. Clear, almost easy. About 10 additional lines. Solves 1.
+-- Solution 2: Dictionary (of regexps) reading and subtagging while regexping - all odd indices, supposedly. A bit hard, but not very -- 20-30 additional lines. Solves 2, 3, 5, 7.
+-- Solution 3: Malformed numbers inside dollars (4) - Add two more regexp functions with no dollars, call them on False tagged subtexts. Simple but long a bit.
+-- Solution 4: Yet another fucking regex to catch 6{,}5 et al. (6)
+
 -- FIXME: dog-nail. I cannot split matched text into chunks via regexp. So I assume (reasonably) we have small number length at both sides.
 -- <FUCK MYSELF>
 
