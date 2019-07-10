@@ -36,6 +36,7 @@ instance Monoid a => Monoid (Tagged a) where
   mappend (Tagged a fa) (Tagged b fb) = Tagged (a <> b) (fa || fb) 
 
 genConcat :: Monoid a => [a] -> a
+genConcat [] = mempty
 genConcat (a:tail) = a <> genConcat tail
 
 outputExtension :: Text
@@ -68,7 +69,6 @@ splitClassify (Tagged a _) = map (\(Tagged ar br) -> Tagged (T.pack ar) br) resu
   where
     result = splitClassifyInternal (T.unpack a) (Tagged "" True)
 
--- Without this inoptimal solution it would be dealt with Lens package. I want to keep it a bit simpler.
 splitClassifyInternal :: String -> Tagged String -> [Tagged String]
 
 splitClassifyInternal [] (Tagged a False) = error "Imbalanced dollars in file."
@@ -83,15 +83,25 @@ splitClassifyInternal ( x :xs) (Tagged a b) = splitClassifyInternal xs (Tagged (
 
 -- = Regexp replacer.
 
-fractionalUpdate :: Tagged Text -> Tagged Text
-fractionalUpdate (Tagged content b) = (Tagged updated_content b)
+numericUpdate :: Tagged Text -> Tagged Text
+numericUpdate (Tagged content b) = (Tagged updated_content b)
   where 
-    updated_content = replaceAll "" "" content
-
-integerUpdate :: Tagged Text -> Tagged Text
-integerUpdate (Tagged content b) = (Tagged updated_content b)
-  where
-    updated_content = replaceAll "" "" content
+    -- FIXME: dog-nail. I cannot split matched text into chunks via regexp. So I assume (reasonably) we have small number length at both sides.
+    -- <FUCK MYSELF>
+    -- Fractionals
+    f1 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3}),(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3{,}$4\\,$5\\,$6$$" content
+    f2 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3}),(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2{,}$3\\,$4\\,$5$$" f1
+    f3 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3}),(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3{,}$4\\,$5$$" f2
+    f4 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3}),(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1\\,$2{,}$3\\,$4$$" f3
+    f5 = replaceAll "(?<!$\\d)(\\d{1,3}),(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1{,}$2\\,$3$$" f4
+    f6 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3}),(\\d{1,3})(?![$\\d])" "$$$1\\,$2{,}$3$$" f5
+    f7 = replaceAll "(?<!$\\d)(\\d{1,3}),(\\d{1,3})(?![$\\d])" "$$$1{,}$2$$" f6
+    -- Integers
+    f8 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3\\,$4\\,$5$$" f7
+    f9 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3\\,$4$$" f8
+    f10 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3$$" f9
+    f11 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1\\,$2$$" f10
+    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(?![$\\d])" "$$$1$$" f11
 
 -- = Application.
 
@@ -99,7 +109,7 @@ updateFileData :: Trimmed -> Trimmed
 updateFileData (Trimmed h body t) = Trimmed h new_body t
   where
     -- [Tagged Text] -> [Tagged Text] -> [Tagged Text] -> [[Tagged Text]] -> [Tagged Text] -> [Tagged Text] -> Tagged Text -> Text
-    new_body = taggedBody . genConcat $ integerUpdate <$> genConcat (splitClassify . fractionalUpdate <$> splitClassify (Tagged body True))
+    new_body = taggedBody . genConcat $ numericUpdate <$> splitClassify (Tagged body True)
     
 run :: FilePath -> IO ()
 run path = do
