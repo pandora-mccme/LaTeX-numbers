@@ -9,13 +9,14 @@ import Prelude hiding (FilePath)
 import Turtle
 
 import qualified Control.Foldl as Fold
-
 import qualified Filesystem.Path as Path
 
 import Data.Monoid
 import Data.List.Split
+
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Text.ICU.Replace
 
 -- = Data structures with helpers. All headed sections could easily be in separate modules.
 
@@ -83,10 +84,14 @@ splitClassifyInternal ( x :xs) (Tagged a b) = splitClassifyInternal xs (Tagged (
 -- = Regexp replacer.
 
 fractionalUpdate :: Tagged Text -> Tagged Text
-fractionalUpdate = undefined
+fractionalUpdate (Tagged content b) = (Tagged updated_content b)
+  where 
+    updated_content = replaceAll "" "" content
 
 integerUpdate :: Tagged Text -> Tagged Text
-integerUpdate = undefined
+integerUpdate (Tagged content b) = (Tagged updated_content b)
+  where
+    updated_content = replaceAll "" "" content
 
 -- = Application.
 
