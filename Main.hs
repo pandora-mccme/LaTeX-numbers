@@ -17,7 +17,7 @@ import Data.List.Split
 import Data.Text (Text)
 import qualified Data.Text as T
 
--- = Data structures with helpers.
+-- = Data structures with helpers. All headed sections could easily be in separate modules.
 
 data Trimmed = Trimmed {
     trimmedHead :: Text
@@ -104,4 +104,3 @@ main = do
   basePath <- options "Input directory" parser
   files <- fold (find (suffix ".tex") basePath) Fold.list
   mapM_ run files
-  
