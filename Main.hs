@@ -79,12 +79,18 @@ splitClassifyInternal ('$':xs) (Tagged a False) = (Tagged (a <> "$") False) : sp
 
 splitClassifyInternal ('$':xs) (Tagged a True) = (Tagged a True) : splitClassifyInternal xs (Tagged "$" False)
 
+-- Assuming it's unreasonable to call mathmode inside mathmode.
+splitClassifyInternal ('\\':')':xs) (Tagged a False) = (Tagged (a <> "\\)") False) : splitClassifyInternal xs (Tagged "" True)
+
+splitClassifyInternal ('\\':'(':xs) (Tagged a True) = (Tagged a True) : splitClassifyInternal xs (Tagged "\\(" False)
+
+splitClassifyInternal ('\\':[]) (Tagged a True) = error "Hanging escape character at the end of the file."
+
 splitClassifyInternal ( x :xs) (Tagged a b) = splitClassifyInternal xs (Tagged (a <> [x]) b)
 
 -- = Regexp replacer.
 
 -- Unbounded rules (according to diff for all 38 prototypes of 1st lesson.):
--- 1. `\(\)` instead of `$$`. Should be handled in classification scheme.
 -- 2. `_\d_\d_\d}` in problem header. Lenient.
 -- 3. Tables: `p{0.24\textwidth}`, `p{4}`, `p{0.24cm}`, `C{4cm}`, `\cline{3-6}`, `\multicolon{2}`, `\multirow{2}`.
 --    Note fixed places - numbers to be reworked can happen in other brackets and in the same line.
@@ -95,7 +101,6 @@ splitClassifyInternal ( x :xs) (Tagged a b) = splitClassifyInternal xs (Tagged (
 --    For all commands. This example clearly states it cannot be done in regexps section.
 --
 -- Demarkation:
--- Solution 1: Add double symbol for classification. Clear, almost easy. About 10 additional lines. Solves 1.
 -- Solution 2: Dictionary (of regexps) reading and subtagging while regexping - all odd indices, supposedly.
 --             A bit hard, but not very -- 20-30 additional lines. Solves 2, 3, 5, 7. Problem is with split by regexp operation.
 
@@ -156,7 +161,7 @@ integer5Update (Tagged content True) = (Tagged updated_content True)
   where 
     updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3\\,$4\\,$5$$" content
 
--- FIXME: Code duplication!
+-- FIXME: Code duplication! True by false and dollars. This code can be a lot more compact.
 
 fractionalRevertUpdate :: Tagged Text -> Tagged Text
 fractionalRevertUpdate (Tagged content True) = (Tagged content True)
