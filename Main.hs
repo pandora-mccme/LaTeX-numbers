@@ -83,49 +83,78 @@ splitClassifyInternal ( x :xs) (Tagged a b) = splitClassifyInternal xs (Tagged (
 
 -- = Regexp replacer.
 
-numericUpdate :: Tagged Text -> Tagged Text
-numericUpdate (Tagged content b) = (Tagged updated_content b)
+-- FIXME: dog-nail. I cannot split matched text into chunks via regexp. So I assume (reasonably) we have small number length at both sides.
+-- <FUCK MYSELF>
+
+fractionalUpdate :: Tagged Text -> Tagged Text
+fractionalUpdate (Tagged content False) = (Tagged content False)
+fractionalUpdate (Tagged content True) = (Tagged updated_content True)
   where 
-    -- FIXME: dog-nail. I cannot split matched text into chunks via regexp. So I assume (reasonably) we have small number length at both sides.
-    -- <FUCK MYSELF>
+    -- Fractionals (mistyped)
+    f01 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})\\.(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3{,}$4\\,$5\\,$6$$" content
+    f02 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})\\.(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2{,}$3\\,$4\\,$5$$" f01
+    f03 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})\\.(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3{,}$4\\,$5$$" f02
+    f04 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})\\.(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1\\,$2{,}$3\\,$4$$" f03
+    f05 = replaceAll "(?<!$\\d)(\\d{1,3})\\.(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1{,}$2\\,$3$$" f04
+    f06 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})\\.(\\d{1,3})(?![$\\d])" "$$$1\\,$2{,}$3$$" f05
+    f07 = replaceAll "(?<!$\\d)(\\d{1,3})\\.(\\d{1,3})(?![$\\d])" "$$$1{,}$2$$" f06
     -- Fractionals
-    f1 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3}),(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3{,}$4\\,$5\\,$6$$" content
+    f1 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3}),(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3{,}$4\\,$5\\,$6$$" f07
     f2 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3}),(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2{,}$3\\,$4\\,$5$$" f1
     f3 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3}),(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3{,}$4\\,$5$$" f2
     f4 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3}),(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1\\,$2{,}$3\\,$4$$" f3
     f5 = replaceAll "(?<!$\\d)(\\d{1,3}),(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1{,}$2\\,$3$$" f4
     f6 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3}),(\\d{1,3})(?![$\\d])" "$$$1\\,$2{,}$3$$" f5
-    f7 = replaceAll "(?<!$\\d)(\\d{1,3}),(\\d{1,3})(?![$\\d])" "$$$1{,}$2$$" f6
-    -- Integers
-    f8 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3\\,$4\\,$5$$" f7
-    f9 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3\\,$4$$" f8
-    f10 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3$$" f9
-    f11 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1\\,$2$$" f10
-    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(?![$\\d])" "$$$1$$" f11
+    updated_content = replaceAll "(?<!$\\d)(\\d{1,3}),(\\d{1,3})(?![$\\d])" "$$$1{,}$2$$" f6
+
+integer1Update :: Tagged Text -> Tagged Text
+integer1Update (Tagged content False) = (Tagged content False)
+integer1Update (Tagged content True) = (Tagged updated_content True)
+  where 
+    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(?![$\\d])" "$$$1$$" content
+
+integer2Update :: Tagged Text -> Tagged Text
+integer2Update (Tagged content False) = (Tagged content False)
+integer2Update (Tagged content True) = (Tagged updated_content True)
+  where 
+    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1\\,$2$$" content
+
+integer3Update :: Tagged Text -> Tagged Text
+integer3Update (Tagged content False) = (Tagged content False)
+integer3Update (Tagged content True) = (Tagged updated_content True)
+  where 
+    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3$$" content
+
+integer4Update :: Tagged Text -> Tagged Text
+integer4Update (Tagged content False) = (Tagged content False)
+integer4Update (Tagged content True) = (Tagged updated_content True)
+  where 
+    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3\\,$4$$" content
+
+integer5Update :: Tagged Text -> Tagged Text
+integer5Update (Tagged content False) = (Tagged content False)
+integer5Update (Tagged content True) = (Tagged updated_content True)
+  where 
+    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3\\,$4\\,$5$$" content
 
 -- = Application.
 
 updateFileData :: Trimmed -> Trimmed
 updateFileData (Trimmed h body t) = Trimmed h new_body t
   where
-    -- [Tagged Text] -> [Tagged Text] -> [Tagged Text] -> [[Tagged Text]] -> [Tagged Text] -> [Tagged Text] -> Tagged Text -> Text
-    new_body = taggedBody . genConcat $ numericUpdate <$> splitClassify (Tagged body True)
+    -- Tagged Text -> [Tagged Text] -> [Tagged Text] -> [[Tagged Text]] -> [Tagged Text] -> [Tagged Text] -> Tagged Text -> Text
+    new_body = taggedBody . genConcat $ integer1Update
+           <$> (genConcat $ splitClassify . integer2Update
+           <$> (genConcat $ splitClassify . integer3Update
+           <$> (genConcat $ splitClassify . integer4Update
+           <$> (genConcat $ splitClassify . integer5Update
+           <$> (genConcat $ splitClassify . fractionalUpdate
+           <$> splitClassify (Tagged body True))))))
     
 run :: FilePath -> IO ()
 run path = do
   content <- trimEnds . map lineToText <$> fold (input path) Fold.list
   outputTrimmed (Path.replaceExtension path outputExtension) (updateFileData content)
-
--- trimEnds >> splitClassify >> fractionalsProcess >> concat . splitClassify >> integersClassify >> concat.
--- splitClassify: automaton to get through content (as string - bottleneck) and set data in dollars to another state (keeping dollars in them).
---   String -> [(String, Bool)] == [markedString]. If there is nothing better.
--- fractionalProcess - regexp search and replace. Do some clever regular expression and match through all fractionals regarding spacing inside number.
--- Put in dollars. [markedString] -> [markedString]
--- concat . splitClassify - redo splitClassify for all processed blocks, concat result in one list again.
--- integersClassify - Go through left out integers.
--- Concat again, build up to Text.
-
--- Go with tildePrepositions - singular regexp.
 
 -- Caveats: numbers in tables. To be checked in regexp. Probably exclude \{\a*\d+\a*\}
 
