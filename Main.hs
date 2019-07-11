@@ -26,6 +26,11 @@ data Trimmed = Trimmed {
   , trimmedTail :: Text
   }
 
+data Opts = Opts {
+    optsDictionary :: FilePath
+  , optsDirectory  :: FilePath
+  }
+
 data Mode = CMD | MathMode | NormalMode deriving (Enum, Ord, Eq)
 
 type Malformed = Bool
@@ -51,8 +56,10 @@ outputTrimmed :: FilePath -> Trimmed -> IO ()
 outputTrimmed fp (Trimmed h b t) = writeTextFile fp $
   h <> "\n\\begin{document}\n" <> b <> "\n\\end{document}\n" <> t
 
-parser :: Parser FilePath
-parser = argPath "path" "Directory with LaTeX to fix"
+parser :: Parser Opts
+parser = Opts
+     <$> optPath "dict" 'd' "File with list of expressions not to change numbers in."
+     <*> argPath "path" "Directory with LaTeX to fix"
 
 -- = Ends trimmer.
 
@@ -271,6 +278,6 @@ run path = do
 
 main :: IO ()
 main = do
-  basePath <- options "Input directory" parser
-  files <- fold (find (suffix ".tex") basePath) Fold.list
+  Opts{..} <- options "Input directory" parser
+  files <- fold (find (suffix ".tex") optsDirectory) Fold.list
   mapM_ run files
