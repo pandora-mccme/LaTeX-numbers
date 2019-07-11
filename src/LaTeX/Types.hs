@@ -6,6 +6,11 @@ import Data.Monoid
 
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Text.ICU (Regex)
+
+newtype Dictionary = Dictionary [Regex] deriving Show
+
+mathModeDictionary = Dictionary ["(\\$.*?\\$)","(\\\\(.*?\\\\)\\))"]
 
 data Trimmed = Trimmed {
     trimmedHead :: Text

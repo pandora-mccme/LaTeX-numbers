@@ -1,0 +1,9 @@
+\problem{.*?}
+\includegraphics[.*?]{.*?}
+\label{.*?}
+\cline{.*?}
+\begin{tabular}{.*?}
+\raisebox{.*?}{.*?}{.*?}
+\multicolumn{.*?}{.*?}
+\multirow{.*?}{.*?}
+\begin{tabular}{.*?}
