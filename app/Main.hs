@@ -33,20 +33,6 @@ parser = Opts
      <$> optPath "dict" 'd' "File with list of expressions not to change numbers in."
      <*> argPath "path" "Directory with LaTeX to fix"
 
--- Unbounded rules (according to diff for all 38 prototypes of 1st lesson.):
--- 2. `_\d_\d_\d}` in problem header. Lenient.
--- 3. Tables: `p{0.24\textwidth}`, `p{4}`, `p{0.24cm}`, `C{4cm}`, `\cline{3-6}`, `\multicolon{2}`, `\multirow{2}`.
---    Note fixed places - numbers to be reworked can happen in other brackets and in the same line.
--- 5. `\raisebox{1.5ex}[0cm][0cm]`
--- 7. \includegraphics[width=0.7\linewidth]{cube0.jpg} Double hell. Fuck.
---    Probably there is really reason for a dictionary of used commands with listed number of arguments.
---    They must go out during regexps - split by them and move them to another state.
---    For all commands. This example clearly states it cannot be done in regexps section.
---
--- Demarkation:
--- Solution 2: Dictionary (of regexps) reading and subtagging while regexping - all odd indices, supposedly.
---             A bit hard, but not very -- 20-30 additional lines. Solves 2, 3, 5, 7. Problem is with split by regexp operation.
-
 updateFileData :: Dictionary -> Trimmed -> Trimmed
 updateFileData dict (Trimmed h body t) = Trimmed h new_body t
   where
