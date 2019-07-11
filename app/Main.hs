@@ -10,6 +10,7 @@ import qualified Control.Foldl as Fold
 import qualified Filesystem.Path as Path
 
 import Data.Text (Text)
+import qualified Data.Text as T
 
 import LaTeX.Types
 import LaTeX.Demarkation
@@ -46,25 +47,26 @@ parser = Opts
 -- Solution 2: Dictionary (of regexps) reading and subtagging while regexping - all odd indices, supposedly.
 --             A bit hard, but not very -- 20-30 additional lines. Solves 2, 3, 5, 7. Problem is with split by regexp operation.
 
-updateFileData :: Trimmed -> Trimmed
-updateFileData (Trimmed h body t) = Trimmed h new_body t
+updateFileData :: Dictionary -> Trimmed -> Trimmed
+updateFileData dict (Trimmed h body t) = Trimmed h new_body t
   where
     -- Tagged Text -> [Tagged Text] -> [Tagged Text] -> [[Tagged Text]] -> [Tagged Text] -> [Tagged Text] -> Tagged Text -> Text
     new_body = taggedBody . genConcat $ integer1Update
-           <$> (genConcat $ splitClassify . integer2RevertUpdate . integer2Update
-           <$> (genConcat $ splitClassify . integer3RevertUpdate . integer3Update
-           <$> (genConcat $ splitClassify . integer4RevertUpdate . integer4Update
-           <$> (genConcat $ splitClassify . integer5RevertUpdate . integer5Update
-           <$> (genConcat $ splitClassify . fractionalRevertUpdate . fractionalUpdate
-           <$> splitClassify (Tagged body NormalMode))))))
+           <$> (genConcat $ markMathMode mathModeDictionary . integer2RevertUpdate . integer2Update
+           <$> (genConcat $ markMathMode mathModeDictionary . integer3RevertUpdate . integer3Update
+           <$> (genConcat $ markMathMode mathModeDictionary . integer4RevertUpdate . integer4Update
+           <$> (genConcat $ markMathMode mathModeDictionary . integer5RevertUpdate . integer5Update
+           <$> (genConcat $ markMathMode mathModeDictionary . fractionalRevertUpdate . fractionalUpdate
+           <$> (genConcat $ markCommands dict <$> markMathMode mathModeDictionary (Tagged body NormalMode)))))))
     
-run :: FilePath -> IO ()
-run path = do
+run :: FilePath -> FilePath -> IO ()
+run path dictPath = do
   content <- trimEnds . map lineToText <$> fold (input path) Fold.list
-  outputTrimmed (Path.replaceExtension path outputExtension) (updateFileData content)
-
+  dictionary <- Dictionary <$> map (readRegex . lineToText) <$> fold (input dictPath) Fold.list
+  outputTrimmed (Path.replaceExtension path outputExtension) (updateFileData dictionary content)
+  
 main :: IO ()
 main = do
   Opts{..} <- options "Input directory" parser
   files <- fold (find (suffix ".tex") optsDirectory) Fold.list
-  mapM_ run files
+  mapM_ (flip run optsDictionary) files

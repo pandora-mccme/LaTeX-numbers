@@ -7,6 +7,9 @@ import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 
+import Data.Text.ICU (Regex, regex)
+import Data.Text.ICU.Replace (replaceAll)
+
 import Data.List.Split (splitWhen)
 
 import LaTeX.Types
@@ -21,18 +24,39 @@ isBeginEnd a =
      "\\begin{document}" `T.isInfixOf` a
   || "\\end{document}" `T.isInfixOf` a
 
-splitClassify :: Tagged Text -> [Tagged Text]
-splitClassify (Tagged a _) = map (\(Tagged ar br) -> Tagged (T.pack ar) br) result
-  where
-    result = splitClassifyInternal (T.unpack a) (Tagged "" NormalMode)
+readRegex :: Text -> Regex
+readRegex = regex []
+          . T.replace "}" "\\}"
+          . T.replace "{" "\\{"
+          . T.replace "[" "\\["
+          . T.replace "]" "\\]"
+          . (\t -> "(\\" <> t <> ")")
 
-splitClassifyInternal :: String -> Tagged String -> [Tagged String]
-splitClassifyInternal [] (Tagged a MathMode) = error "Imbalanced dollars in file."
-splitClassifyInternal [] (Tagged a NormalMode) = [Tagged a NormalMode]
-splitClassifyInternal ('$':xs) (Tagged a MathMode) = (Tagged (a <> "$") MathMode) : splitClassifyInternal xs (Tagged "" NormalMode)
-splitClassifyInternal ('$':xs) (Tagged a NormalMode) = (Tagged a NormalMode) : splitClassifyInternal xs (Tagged "$" MathMode)
--- Assuming it's unreasonable to call mathmode inside mathmode.
-splitClassifyInternal ('\\':')':xs) (Tagged a MathMode) = (Tagged (a <> "\\)") MathMode) : splitClassifyInternal xs (Tagged "" NormalMode)
-splitClassifyInternal ('\\':'(':xs) (Tagged a NormalMode) = (Tagged a NormalMode) : splitClassifyInternal xs (Tagged "\\(" MathMode)
-splitClassifyInternal ('\\':[]) (Tagged a NormalMode) = error "Hanging escape character at the end of the file."
-splitClassifyInternal ( x :xs) (Tagged a b) = splitClassifyInternal xs (Tagged (a <> [x]) b)
+splitByRegex :: Dictionary -> Text -> [Text]
+splitByRegex (Dictionary dict) txt =
+  T.splitOn "#^#^#^#^#" $ foldl (.) id (map (\pattern -> replaceAll pattern "#^#^#^#^#$1#^#^#^#^#") dict) txt
+
+-- tagAsNorm (splitByRegex pat bs)
+tagAsNorm :: Mode -> [Text] -> [Tagged Text]
+tagAsNorm _ [] = []
+tagAsNorm NormalMode txt = map (\a -> Tagged a NormalMode) txt
+tagAsNorm CMD (x:xs) = (Tagged x NormalMode): tagAsCmd xs
+tagAsNorm MathMode (x:xs) = (Tagged x NormalMode): tagAsCmd xs
+
+tagAsCmd :: [Text] -> [Tagged Text]
+tagAsCmd [] = []
+tagAsCmd (x:xs) = (Tagged x CMD): tagAsNorm CMD xs
+
+tagAsMath :: [Text] -> [Tagged Text]
+tagAsMath [] = []
+tagAsMath (x:xs) = (Tagged x MathMode): tagAsNorm MathMode xs
+
+markCommands :: Dictionary -> Tagged Text -> [Tagged Text]
+markCommands _dict (Tagged a CMD) = [Tagged a CMD]
+markCommands _dict (Tagged a MathMode) = [Tagged a MathMode]
+markCommands dict (Tagged a NormalMode) = tagAsNorm CMD (splitByRegex dict a)
+
+markMathMode :: Dictionary -> Tagged Text -> [Tagged Text]
+markMathMode _dict (Tagged a CMD) = [Tagged a CMD]
+markMathMode _dict (Tagged a MathMode) = [Tagged a MathMode]
+markMathMode dict (Tagged a NormalMode) = tagAsNorm MathMode (splitByRegex dict a)

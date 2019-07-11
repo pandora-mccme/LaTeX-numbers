@@ -65,10 +65,9 @@ fractionalRevertUpdate :: Tagged Text -> Tagged Text
 fractionalRevertUpdate = fractionalUpdateInner True
 
 integerUpdateInner :: InsideMathMode -> ReplacementData -> Tagged Text -> Tagged Text
-integerUpdateInner True _rep (Tagged content CMD) = (Tagged content CMD)
 integerUpdateInner True _rep (Tagged content NormalMode) = (Tagged content NormalMode)
 integerUpdateInner True rep (Tagged content MathMode) = (Tagged (replaceAll_ rep content) MathMode)
-integerUpdateInner False _rep (Tagged content CMD) = (Tagged content CMD)
+integerUpdateInner _ _rep (Tagged content CMD) = (Tagged content CMD)
 integerUpdateInner False rep (Tagged content NormalMode) = (Tagged (replaceAll_ (toMathMode rep) content) NormalMode)
 integerUpdateInner False _rep (Tagged content MathMode) = (Tagged content MathMode)
 

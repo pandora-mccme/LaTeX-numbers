@@ -35,4 +35,5 @@ executable LaTeX-numbers
                      , turtle
                      , system-filepath
                      , foldl
+                     , text-icu
   default-language:    Haskell2010
