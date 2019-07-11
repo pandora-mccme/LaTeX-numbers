@@ -17,6 +17,7 @@ executable LaTeX-numbers
   build-depends:       base >=4.8
                      , text >=1.2
                      , text-regex-replace
+                     , text-icu
                      , split
                      , turtle
                      , system-filepath

@@ -14,6 +14,8 @@ import Data.List.Split
 
 import Data.Text (Text)
 import qualified Data.Text as T
+
+import Data.Text.ICU (Regex)
 import Data.Text.ICU.Replace
 
 -- = Data structures with helpers. All headed sections could easily be in separate modules.
@@ -24,14 +26,19 @@ data Trimmed = Trimmed {
   , trimmedTail :: Text
   }
 
+data Mode = CMD | MathMode | NormalMode deriving (Enum, Ord, Eq)
+
+type Malformed = Bool
+type InsideMathMode = Bool
+
 data Tagged a = Tagged {
     taggedBody :: a
-  , taggedTag  :: Bool
+  , taggedTag  :: Mode
   }
 
 instance Monoid a => Monoid (Tagged a) where
-  mempty = Tagged mempty True
-  mappend (Tagged a fa) (Tagged b fb) = Tagged (a <> b) (fa || fb) 
+  mempty = Tagged mempty NormalMode
+  mappend (Tagged a fa) (Tagged b fb) = Tagged (a <> b) (fa `max` fb) 
 
 genConcat :: Monoid a => [a] -> a
 genConcat [] = mempty
@@ -61,28 +68,27 @@ isBeginEnd a =
 
 -- = Classifier.
 
--- Tagged with @False@ for text in dollars.
 splitClassify :: Tagged Text -> [Tagged Text]
 splitClassify (Tagged a _) = map (\(Tagged ar br) -> Tagged (T.pack ar) br) result
   where
-    result = splitClassifyInternal (T.unpack a) (Tagged "" True)
+    result = splitClassifyInternal (T.unpack a) (Tagged "" NormalMode)
 
 splitClassifyInternal :: String -> Tagged String -> [Tagged String]
 
-splitClassifyInternal [] (Tagged a False) = error "Imbalanced dollars in file."
+splitClassifyInternal [] (Tagged a MathMode) = error "Imbalanced dollars in file."
 
-splitClassifyInternal [] (Tagged a True) = [Tagged a True]
+splitClassifyInternal [] (Tagged a NormalMode) = [Tagged a NormalMode]
 
-splitClassifyInternal ('$':xs) (Tagged a False) = (Tagged (a <> "$") False) : splitClassifyInternal xs (Tagged "" True)
+splitClassifyInternal ('$':xs) (Tagged a MathMode) = (Tagged (a <> "$") MathMode) : splitClassifyInternal xs (Tagged "" NormalMode)
 
-splitClassifyInternal ('$':xs) (Tagged a True) = (Tagged a True) : splitClassifyInternal xs (Tagged "$" False)
+splitClassifyInternal ('$':xs) (Tagged a NormalMode) = (Tagged a NormalMode) : splitClassifyInternal xs (Tagged "$" MathMode)
 
 -- Assuming it's unreasonable to call mathmode inside mathmode.
-splitClassifyInternal ('\\':')':xs) (Tagged a False) = (Tagged (a <> "\\)") False) : splitClassifyInternal xs (Tagged "" True)
+splitClassifyInternal ('\\':')':xs) (Tagged a MathMode) = (Tagged (a <> "\\)") MathMode) : splitClassifyInternal xs (Tagged "" NormalMode)
 
-splitClassifyInternal ('\\':'(':xs) (Tagged a True) = (Tagged a True) : splitClassifyInternal xs (Tagged "\\(" False)
+splitClassifyInternal ('\\':'(':xs) (Tagged a NormalMode) = (Tagged a NormalMode) : splitClassifyInternal xs (Tagged "\\(" MathMode)
 
-splitClassifyInternal ('\\':[]) (Tagged a True) = error "Hanging escape character at the end of the file."
+splitClassifyInternal ('\\':[]) (Tagged a NormalMode) = error "Hanging escape character at the end of the file."
 
 splitClassifyInternal ( x :xs) (Tagged a b) = splitClassifyInternal xs (Tagged (a <> [x]) b)
 
@@ -105,112 +111,144 @@ splitClassifyInternal ( x :xs) (Tagged a b) = splitClassifyInternal xs (Tagged (
 -- FIXME: dog-nail. I cannot split matched text into chunks via regexp. So I assume (reasonably) we have small number length at both sides.
 -- <FUCK MYSELF>
 
--- Make newtype.
-type ReplacementData = (Replace, Text)  -- TODO: Rework all @Update@ functions. Move regexps with names to separate objects, make one function and aliases.
--- Just a bit more focused.
+data ReplacementData = Replacement {
+    replacementPattern :: Regex
+  , replacementResult  :: Replace
+  }
+
+toMathMode :: ReplacementData -> ReplacementData
+toMathMode Replacement{..} = Replacement replacementPattern ("$$" <> replacementResult <> "$$")
+
+replaceAll_ :: ReplacementData -> Text -> Text
+replaceAll_ Replacement{..} = replaceAll replacementPattern replacementResult
+
+-- Regexp list:
+commaRep :: ReplacementData
+commaRep = Replacement "(\\d)\\{,\\}(\\d)" "$1,$2"
+
+fractional3_3Rep :: Malformed -> ReplacementData
+fractional3_3Rep True = Replacement "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})\\.(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$1\\,$2\\,$3{,}$4\\,$5\\,$6"
+fractional3_3Rep False = Replacement "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3}),(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$1\\,$2\\,$3{,}$4\\,$5\\,$6"
+
+fractional2_3Rep :: Malformed -> ReplacementData
+fractional2_3Rep True = Replacement "(?<!$\\d)(\\d{1,3})(\\d{3})\\.(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$1\\,$2{,}$3\\,$4\\,$5"
+fractional2_3Rep False = Replacement "(?<!$\\d)(\\d{1,3})(\\d{3}),(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$1\\,$2{,}$3\\,$4\\,$5"
+
+fractional3_2Rep :: Malformed -> ReplacementData
+fractional3_2Rep True = Replacement "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})\\.(\\d{1,3})(\\d{3})(?![$\\d])" "$1\\,$2\\,$3{,}$4\\,$5"
+fractional3_2Rep False = Replacement "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3}),(\\d{1,3})(\\d{3})(?![$\\d])" "$1\\,$2\\,$3{,}$4\\,$5"
+
+fractional2_2Rep :: Malformed -> ReplacementData
+fractional2_2Rep True = Replacement "(?<!$\\d)(\\d{1,3})(\\d{3})\\.(\\d{1,3})(\\d{3})(?![$\\d])" "$1\\,$2{,}$3\\,$4"
+fractional2_2Rep False = Replacement "(?<!$\\d)(\\d{1,3})(\\d{3}),(\\d{1,3})(\\d{3})(?![$\\d])" "$1\\,$2{,}$3\\,$4"
+
+fractional2_1Rep :: Malformed -> ReplacementData
+fractional2_1Rep True = Replacement "(?<!$\\d)(\\d{1,3})\\.(\\d{1,3})(\\d{3})(?![$\\d])" "$1{,}$2\\,$3"
+fractional2_1Rep False = Replacement "(?<!$\\d)(\\d{1,3}),(\\d{1,3})(\\d{3})(?![$\\d])" "$1{,}$2\\,$3"
+
+fractional1_2Rep :: Malformed -> ReplacementData
+fractional1_2Rep True = Replacement "(?<!$\\d)(\\d{1,3})(\\d{3})\\.(\\d{1,3})(?![$\\d])" "$1\\,$2{,}$3"
+fractional1_2Rep False = Replacement "(?<!$\\d)(\\d{1,3})(\\d{3}),(\\d{1,3})(?![$\\d])" "$1\\,$2{,}$3"
+
+fractional1_1Rep :: Malformed -> ReplacementData
+fractional1_1Rep True = Replacement "(?<!$\\d)(\\d{1,3})\\.(\\d{1,3})(?![$\\d])" "$1{,}$2"
+fractional1_1Rep False = Replacement "(?<!$\\d)(\\d{1,3}),(\\d{1,3})(?![$\\d])" "$1{,}$2"
+
+integer5Rep :: ReplacementData
+integer5Rep = Replacement "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(\\d{3})(\\d{3})(?![$\\d])" "$1\\,$2\\,$3\\,$4\\,$5"
+
+integer4Rep :: ReplacementData
+integer4Rep = Replacement "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(\\d{3})(?![$\\d])" "$1\\,$2\\,$3\\,$4"
+
+integer3Rep :: ReplacementData
+integer3Rep = Replacement "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$1\\,$2\\,$3"
+
+integer2Rep :: ReplacementData
+integer2Rep = Replacement "(?<!$\\d)(\\d{1,3})(\\d{3})(?![$\\d])" "$1\\,$2"
+
+integer1Rep :: ReplacementData
+integer1Rep = Replacement "(?<!$\\d)(\\d{1,3})(?![$\\d])" "$1"
+
+fractionalUpdateInner :: InsideMathMode -> Tagged Text -> Tagged Text
+fractionalUpdateInner True (Tagged content CMD) = (Tagged content CMD)
+fractionalUpdateInner False (Tagged content CMD) = (Tagged content CMD)
+fractionalUpdateInner False (Tagged content MathMode) = (Tagged content MathMode)
+fractionalUpdateInner True (Tagged content NormalMode) = (Tagged content NormalMode)
+fractionalUpdateInner False (Tagged content NormalMode) = (Tagged updated_content NormalMode)
+  where
+    updated_content = replaceAll_ (toMathMode $ fractional1_1Rep False)
+                    $ replaceAll_ (toMathMode $ fractional2_1Rep False)
+                    $ replaceAll_ (toMathMode $ fractional1_2Rep False)
+                    $ replaceAll_ (toMathMode $ fractional2_2Rep False)
+                    $ replaceAll_ (toMathMode $ fractional3_2Rep False)
+                    $ replaceAll_ (toMathMode $ fractional2_3Rep False)
+                    $ replaceAll_ (toMathMode $ fractional3_3Rep False)
+                    $ replaceAll_ (toMathMode $ fractional1_1Rep True)
+                    $ replaceAll_ (toMathMode $ fractional2_1Rep True)
+                    $ replaceAll_ (toMathMode $ fractional1_2Rep True)
+                    $ replaceAll_ (toMathMode $ fractional2_2Rep True)
+                    $ replaceAll_ (toMathMode $ fractional3_2Rep True)
+                    $ replaceAll_ (toMathMode $ fractional2_3Rep True)
+                    $ replaceAll_ (toMathMode $ fractional3_3Rep True)
+                    $ replaceAll_ commaRep content
+fractionalUpdateInner True (Tagged content MathMode) = (Tagged updated_content MathMode)
+  where
+    updated_content = replaceAll_ (fractional1_1Rep False)
+                    $ replaceAll_ (fractional2_1Rep False)
+                    $ replaceAll_ (fractional1_2Rep False)
+                    $ replaceAll_ (fractional2_2Rep False)
+                    $ replaceAll_ (fractional3_2Rep False)
+                    $ replaceAll_ (fractional2_3Rep False)
+                    $ replaceAll_ (fractional3_3Rep False)
+                    $ replaceAll_ (fractional1_1Rep True)
+                    $ replaceAll_ (fractional2_1Rep True)
+                    $ replaceAll_ (fractional1_2Rep True)
+                    $ replaceAll_ (fractional2_2Rep True)
+                    $ replaceAll_ (fractional3_2Rep True)
+                    $ replaceAll_ (fractional2_3Rep True)
+                    $ replaceAll_ (fractional3_3Rep True)
+                    $ replaceAll_ commaRep content
 
 fractionalUpdate :: Tagged Text -> Tagged Text
-fractionalUpdate (Tagged content False) = (Tagged content False)
-fractionalUpdate (Tagged content True) = (Tagged updated_content True)
-  where 
-    -- Fractionals (make almost nice normal)
-    f0 = replaceAll "(\\d)\\{,\\}(\\d)" "$1,$2" content
-    -- Fractionals (mistyped)
-    f01 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})\\.(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3{,}$4\\,$5\\,$6$$" f0
-    f02 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})\\.(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2{,}$3\\,$4\\,$5$$" f01
-    f03 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})\\.(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3{,}$4\\,$5$$" f02
-    f04 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})\\.(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1\\,$2{,}$3\\,$4$$" f03
-    f05 = replaceAll "(?<!$\\d)(\\d{1,3})\\.(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1{,}$2\\,$3$$" f04
-    f06 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})\\.(\\d{1,3})(?![$\\d])" "$$$1\\,$2{,}$3$$" f05
-    f07 = replaceAll "(?<!$\\d)(\\d{1,3})\\.(\\d{1,3})(?![$\\d])" "$$$1{,}$2$$" f06
-    -- Fractionals
-    f1 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3}),(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3{,}$4\\,$5\\,$6$$" f07
-    f2 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3}),(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2{,}$3\\,$4\\,$5$$" f1
-    f3 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3}),(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3{,}$4\\,$5$$" f2
-    f4 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3}),(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1\\,$2{,}$3\\,$4$$" f3
-    f5 = replaceAll "(?<!$\\d)(\\d{1,3}),(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1{,}$2\\,$3$$" f4
-    f6 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3}),(\\d{1,3})(?![$\\d])" "$$$1\\,$2{,}$3$$" f5
-    updated_content = replaceAll "(?<!$\\d)(\\d{1,3}),(\\d{1,3})(?![$\\d])" "$$$1{,}$2$$" f6
-
--- Why five? Because there is strong dollar duplication. Fuck regexp.
-integer1Update :: Tagged Text -> Tagged Text
-integer1Update (Tagged content False) = (Tagged content False)
-integer1Update (Tagged content True) = (Tagged updated_content True)
-  where
-    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(?![$\\d])" "$$$1$$" content
-
-integer2Update :: Tagged Text -> Tagged Text
-integer2Update (Tagged content False) = (Tagged content False)
-integer2Update (Tagged content True) = (Tagged updated_content True)
-  where 
-    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(?![$\\d])" "$$$1\\,$2$$" content
-
-integer3Update :: Tagged Text -> Tagged Text
-integer3Update (Tagged content False) = (Tagged content False)
-integer3Update (Tagged content True) = (Tagged updated_content True)
-  where 
-    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3$$" content
-
-integer4Update :: Tagged Text -> Tagged Text
-integer4Update (Tagged content False) = (Tagged content False)
-integer4Update (Tagged content True) = (Tagged updated_content True)
-  where 
-    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3\\,$4$$" content
-
-integer5Update :: Tagged Text -> Tagged Text
-integer5Update (Tagged content False) = (Tagged content False)
-integer5Update (Tagged content True) = (Tagged updated_content True)
-  where 
-    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(\\d{3})(\\d{3})(?![$\\d])" "$$$1\\,$2\\,$3\\,$4\\,$5$$" content
-
--- FIXME: Code duplication! True by false and dollars. This code can be a lot more compact.
+fractionalUpdate = fractionalUpdateInner False
 
 fractionalRevertUpdate :: Tagged Text -> Tagged Text
-fractionalRevertUpdate (Tagged content True) = (Tagged content True)
-fractionalRevertUpdate (Tagged content False) = (Tagged updated_content False)
-  where 
-    -- Fractionals (make almost nice normal)
-    f0 = replaceAll "(\\d)\\{,\\}(\\d)" "$1,$2" content
-    -- Fractionals (mistyped)
-    f01 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})\\.(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$1\\,$2\\,$3{,}$4\\,$5\\,$6" f0
-    f02 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})\\.(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$1\\,$2{,}$3\\,$4\\,$5" f01
-    f03 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})\\.(\\d{1,3})(\\d{3})(?![$\\d])" "$1\\,$2\\,$3{,}$4\\,$5" f02
-    f04 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})\\.(\\d{1,3})(\\d{3})(?![$\\d])" "$1\\,$2{,}$3\\,$4" f03
-    f05 = replaceAll "(?<!$\\d)(\\d{1,3})\\.(\\d{1,3})(\\d{3})(?![$\\d])" "$1{,}$2\\,$3" f04
-    f06 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})\\.(\\d{1,3})(?![$\\d])" "$1\\,$2{,}$3" f05
-    f07 = replaceAll "(?<!$\\d)(\\d{1,3})\\.(\\d{1,3})(?![$\\d])" "$1{,}$2" f06
-    -- Fractionals
-    f1 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3}),(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$1\\,$2\\,$3{,}$4\\,$5\\,$6" f07
-    f2 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3}),(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$1\\,$2{,}$3\\,$4\\,$5" f1
-    f3 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3}),(\\d{1,3})(\\d{3})(?![$\\d])" "$1\\,$2\\,$3{,}$4\\,$5" f2
-    f4 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3}),(\\d{1,3})(\\d{3})(?![$\\d])" "$1\\,$2{,}$3\\,$4" f3
-    f5 = replaceAll "(?<!$\\d)(\\d{1,3}),(\\d{1,3})(\\d{3})(?![$\\d])" "$1{,}$2\\,$3" f4
-    f6 = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3}),(\\d{1,3})(?![$\\d])" "$1\\,$2{,}$3" f5
-    updated_content = replaceAll "(?<!$\\d)(\\d{1,3}),(\\d{1,3})(?![$\\d])" "$1{,}$2" f6
+fractionalRevertUpdate = fractionalUpdateInner True
+
+integerUpdateInner :: InsideMathMode -> ReplacementData -> Tagged Text -> Tagged Text
+integerUpdateInner True _rep (Tagged content CMD) = (Tagged content CMD)
+integerUpdateInner True _rep (Tagged content NormalMode) = (Tagged content NormalMode)
+integerUpdateInner True rep (Tagged content MathMode) = (Tagged (replaceAll_ rep content) MathMode)
+integerUpdateInner False _rep (Tagged content CMD) = (Tagged content CMD)
+integerUpdateInner False rep (Tagged content NormalMode) = (Tagged (replaceAll_ (toMathMode rep) content) NormalMode)
+integerUpdateInner False _rep (Tagged content MathMode) = (Tagged content MathMode)
+
+integer1Update :: Tagged Text -> Tagged Text
+integer1Update = integerUpdateInner False integer1Rep
+
+integer2Update :: Tagged Text -> Tagged Text
+integer2Update = integerUpdateInner False integer2Rep
+
+integer3Update :: Tagged Text -> Tagged Text
+integer3Update = integerUpdateInner False integer3Rep
+
+integer4Update :: Tagged Text -> Tagged Text
+integer4Update = integerUpdateInner False integer4Rep
+
+integer5Update :: Tagged Text -> Tagged Text
+integer5Update = integerUpdateInner False integer5Rep
 
 integer2RevertUpdate :: Tagged Text -> Tagged Text
-integer2RevertUpdate (Tagged content True) = (Tagged content True)
-integer2RevertUpdate (Tagged content False) = (Tagged updated_content False)
-  where 
-    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(?![$\\d])" "$1\\,$2" content
+integer2RevertUpdate = integerUpdateInner True integer2Rep
 
 integer3RevertUpdate :: Tagged Text -> Tagged Text
-integer3RevertUpdate (Tagged content True) = (Tagged content True)
-integer3RevertUpdate (Tagged content False) = (Tagged updated_content False)
-  where 
-    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(?![$\\d])" "$1\\,$2\\,$3" content
+integer3RevertUpdate = integerUpdateInner True integer3Rep
 
 integer4RevertUpdate :: Tagged Text -> Tagged Text
-integer4RevertUpdate (Tagged content True) = (Tagged content True)
-integer4RevertUpdate (Tagged content False) = (Tagged updated_content False)
-  where 
-    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(\\d{3})(?![$\\d])" "$1\\,$2\\,$3\\,$4" content
+integer4RevertUpdate = integerUpdateInner True integer4Rep
 
 integer5RevertUpdate :: Tagged Text -> Tagged Text
-integer5RevertUpdate (Tagged content True) = (Tagged content True)
-integer5RevertUpdate (Tagged content False) = (Tagged updated_content False)
-  where 
-    updated_content = replaceAll "(?<!$\\d)(\\d{1,3})(\\d{3})(\\d{3})(\\d{3})(\\d{3})(?![$\\d])" "$1\\,$2\\,$3\\,$4\\,$5" content
+integer5RevertUpdate = integerUpdateInner True integer5Rep
 
 -- = Application.
 
@@ -224,7 +262,7 @@ updateFileData (Trimmed h body t) = Trimmed h new_body t
            <$> (genConcat $ splitClassify . integer4RevertUpdate . integer4Update
            <$> (genConcat $ splitClassify . integer5RevertUpdate . integer5Update
            <$> (genConcat $ splitClassify . fractionalRevertUpdate . fractionalUpdate
-           <$> splitClassify (Tagged body True))))))
+           <$> splitClassify (Tagged body NormalMode))))))
     
 run :: FilePath -> IO ()
 run path = do
