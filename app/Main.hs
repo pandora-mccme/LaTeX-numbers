@@ -17,10 +17,14 @@ import LaTeX.Replacement.Procedures
 data Opts = Opts {
     optsDictionary :: FilePath
   , optsDirectory  :: FilePath
+  , optsDebug      :: Bool
   }
 
+outputExtensionDebug :: Text
+outputExtensionDebug = "test"
+
 outputExtension :: Text
-outputExtension = "test"
+outputExtension = "tex"
 
 outputTrimmed :: FilePath -> Trimmed -> IO ()
 outputTrimmed fp (Trimmed h b t) = writeTextFile fp $
@@ -29,7 +33,8 @@ outputTrimmed fp (Trimmed h b t) = writeTextFile fp $
 parser :: Parser Opts
 parser = Opts
      <$> optPath "dict" 'd' "File with list of expressions not to change numbers in."
-     <*> argPath "path" "Directory with LaTeX to fix"
+     <*> argPath "path" "Directory with LaTeX to fix."
+     <*> switch  "debug" 'D' "Write changes to another file (debug mode)"
 
 updateFileData :: Dictionary -> Trimmed -> Trimmed
 updateFileData dict (Trimmed h body t) = Trimmed h new_body t
@@ -44,14 +49,18 @@ updateFileData dict (Trimmed h body t) = Trimmed h new_body t
            <$> (genConcat $ markMathMode mathModeDictionary . fractionalRevertUpdate . fractionalUpdate
            <$> (genConcat $ markCommands dict <$> markMathMode mathModeDictionary (Tagged body NormalMode))))))))
     
-run :: FilePath -> FilePath -> IO ()
-run path dictPath = do
+run :: Bool -> FilePath -> FilePath -> IO ()
+run debug dictPath path = do
   content <- trimEnds . map lineToText <$> fold (input path) Fold.list
   dictionary <- Dictionary <$> map (readRegex . lineToText) <$> fold (input dictPath) Fold.list
-  outputTrimmed (Path.replaceExtension path outputExtension) (updateFileData dictionary content)
+  outputTrimmed (Path.replaceExtension path ext) (updateFileData dictionary content)
+  where
+    ext = if debug
+      then outputExtensionDebug
+      else outputExtension
   
 main :: IO ()
 main = do
   Opts{..} <- options "Input directory" parser
   files <- fold (find (suffix ".tex") optsDirectory) Fold.list
-  mapM_ (flip run optsDictionary) files
+  mapM_ (run optsDebug optsDictionary) files
