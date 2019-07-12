@@ -3,7 +3,11 @@
 \label{.*?}
 \cline{.*?}
 \begin{tabular}{.*?}
-\raisebox{.*?}{.*?}{.*?}
+\raisebox{.*?}[.*?][.*?]
 \multicolumn{.*?}{.*?}
 \multirow{.*?}{.*?}
-\begin{tabular}{.*?}
+\p{.*?}
+\C{.*?}
+\L{.*?}
+\R{.*?}
+\tabcolsep=.*?\S+
