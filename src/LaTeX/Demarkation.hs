@@ -12,10 +12,12 @@ import Data.List.Split (splitWhen)
 
 import LaTeX.Types
 
-trimEnds :: [Text] -> Trimmed
-trimEnds content = Trimmed h b t
+trimEnds :: [Text] -> Maybe Trimmed
+trimEnds content = case a of
+    [h,b,t] -> Just $ Trimmed h b t
+    _ -> Nothing
   where
-    [h,b,t] = map (T.intercalate "\n") $ splitWhen isBeginEnd content
+    a = map (T.intercalate "\n") $ splitWhen isBeginEnd content
 
 isBeginEnd :: Text -> Bool
 isBeginEnd a =

@@ -51,9 +51,12 @@ updateFileData dict (Trimmed h body t) = Trimmed h new_body t
     
 run :: Bool -> FilePath -> FilePath -> IO ()
 run debug dictPath path = do
-  content <- trimEnds . map lineToText <$> fold (input path) Fold.list
-  dictionary <- Dictionary <$> map readRegex . filter (\l -> (T.isPrefixOf "-- " l) || (l /= "")) . map lineToText <$> fold (input dictPath) Fold.list
-  outputTrimmed (Path.replaceExtension path ext) (updateFileData dictionary content)
+  mcontent <- trimEnds . map lineToText <$> fold (input path) Fold.list
+  case mcontent of
+    Just content -> do
+      dictionary <- Dictionary <$> map readRegex . filter (\l -> (T.isPrefixOf "-- " l) || (l /= "")) . map lineToText <$> fold (input dictPath) Fold.list
+      outputTrimmed (Path.replaceExtension path ext) (updateFileData dictionary content)
+    Nothing -> return ()
   where
     ext = if debug
       then outputExtensionDebug
