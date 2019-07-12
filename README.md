@@ -33,7 +33,7 @@ Available options:
   -D,--debug               Write changes to another file (debug mode)
 ```
 
-Dictionary contains regular expressions (usually simple) for LaTeX commands with arguments. It support annotation line comments in Haskell syntax.
+Dictionary contains regular expressions (usually simple) for LaTeX commands with arguments. It supports line comments in Haskell syntax. `dict.txt` file here is an example. It's annotated in Russian, I can annotate it in English on a request.
 
 **Disclaimer**
 
