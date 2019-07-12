@@ -40,8 +40,9 @@ updateFileData dict (Trimmed h body t) = Trimmed h new_body t
            <$> (genConcat $ markMathMode mathModeDictionary . integer3RevertUpdate . integer3Update
            <$> (genConcat $ markMathMode mathModeDictionary . integer4RevertUpdate . integer4Update
            <$> (genConcat $ markMathMode mathModeDictionary . integer5RevertUpdate . integer5Update
+           <$> (genConcat $ markMathMode mathModeDictionary . timeUpdate
            <$> (genConcat $ markMathMode mathModeDictionary . fractionalRevertUpdate . fractionalUpdate
-           <$> (genConcat $ markCommands dict <$> markMathMode mathModeDictionary (Tagged body NormalMode)))))))
+           <$> (genConcat $ markCommands dict <$> markMathMode mathModeDictionary (Tagged body NormalMode))))))))
     
 run :: FilePath -> FilePath -> IO ()
 run path dictPath = do

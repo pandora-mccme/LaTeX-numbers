@@ -69,6 +69,10 @@ integerUpdateInner _ _rep (Tagged content CMD) = (Tagged content CMD)
 integerUpdateInner False rep (Tagged content NormalMode) = (Tagged (replaceAll_ (toMathMode rep) content) NormalMode)
 integerUpdateInner False _rep (Tagged content MathMode) = (Tagged content MathMode)
 
+timeUpdate :: Tagged Text -> Tagged Text
+timeUpdate (Tagged txt NormalMode) = Tagged (replaceAll_ (toMathMode timeRep) txt) NormalMode
+timeUpdate a = a
+
 integer1Update :: Tagged Text -> Tagged Text
 integer1Update = integerUpdateInner False integer1Rep
 

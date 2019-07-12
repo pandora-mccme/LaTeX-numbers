@@ -41,6 +41,9 @@ fractional1_1Rep :: Malformed -> ReplacementData
 fractional1_1Rep True = Replacement "(?<!$\\d)(\\d{1,3})\\.(\\d{1,3})(?![$\\d])" "$1{,}$2"
 fractional1_1Rep False = Replacement "(?<!$\\d)(\\d{1,3}),(\\d{1,3})(?![$\\d])" "$1{,}$2"
 
+timeRep :: ReplacementData
+timeRep = Replacement "(?<!$\\d)(\\d{1,3}):(\\d{1,3})(?![$\\d])" "$1:$2"
+
 integer5Rep :: ReplacementData
 integer5Rep = Replacement "(?<!$\\d)(\\d{1,3})~*(\\d{3})~*(\\d{3})~*(\\d{3})~*(\\d{3})(?![$\\d])" "$1\\,$2\\,$3\\,$4\\,$5"
 
