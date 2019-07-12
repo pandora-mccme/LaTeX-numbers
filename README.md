@@ -14,3 +14,8 @@ Decimals are always written as `d+{,}d+`. All numbers are splitted by chunks of 
 Works with all .tex files in a directory.
 
 `LaTeX-numbers -d <path to dictionary> <path to directory to work in>`.
+
+
+_Disclaimer_
+
+This script is not an excuse to forget habitual techniques of page making. It should be used at the end of the process to ensure everything is ok. And it is an excuse not to make edits if they're in numbers only.
