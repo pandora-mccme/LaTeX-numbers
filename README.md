@@ -17,7 +17,22 @@ Works with all .tex files in a directory.
 
 `LaTeX-numbers -d <path to dictionary> <path to directory to work in>`.
 
+For complete reference call `LaTeX-numbers -h`. **Important notice:** By default tool works in place of files. Enable writing to copies with `.test` extension by `-D` option.
 
-_Disclaimer_
+Output of embedded help message:
+```
+Fix number formatting through directory.
+
+Usage: LaTeX-numbers (-d|--dict DICT) PATH [-D|--debug]
+
+Available options:
+  -h,--help                Show this help text
+  -d,--dict DICT           File with list of expressions not to change numbers
+                           in.
+  PATH                     Directory with LaTeX to fix.
+  -D,--debug               Write changes to another file (debug mode)
+```
+
+**Disclaimer**
 
 This script is not an excuse to forget habitual techniques of page making. It should be used at the end of the process to ensure everything is ok. And it is an excuse not to make edits if they're in numbers only.
