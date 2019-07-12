@@ -61,6 +61,6 @@ run debug dictPath path = do
   
 main :: IO ()
 main = do
-  Opts{..} <- options "Input directory" parser
+  Opts{..} <- options "Fix number formatting through directory." parser
   files <- fold (find (suffix ".tex") optsDirectory) Fold.list
   mapM_ (run optsDebug optsDictionary) files
