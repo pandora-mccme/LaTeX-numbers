@@ -1,5 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE OverloadedStrings #-}
 module LaTeX.Demarkation where
 
 import Data.Monoid ((<>))

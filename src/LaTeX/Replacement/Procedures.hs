@@ -1,5 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE OverloadedStrings #-}
 module LaTeX.Replacement.Procedures where
 
 import Data.Monoid ((<>))

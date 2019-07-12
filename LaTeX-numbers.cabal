@@ -16,6 +16,8 @@ library
                      , LaTeX.Replacement.Rules
                      , LaTeX.Replacement.Procedures
   hs-source-dirs:      src
+  default-extensions:  RecordWildCards
+                     , OverloadedStrings
   build-depends:       base >=4.8
                      , text >=1.2
                      , text-regex-replace
@@ -27,7 +29,7 @@ executable LaTeX-numbers
   main-is:             Main.hs
   hs-source-dirs:      app
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  other-extensions:    RecordWildCards
+  default-extensions:  RecordWildCards
                      , OverloadedStrings
   build-depends:       LaTeX-numbers
                      , base >=4.8
