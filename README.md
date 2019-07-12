@@ -9,6 +9,8 @@ All numbers outside of commands must be written in math mode.
 
 Decimals are always written as `d+{,}d+`. All numbers are splitted by chunks of length three with `\,` space.
 
+Time is interpreted as single number.
+
 #### Usage:
 
 Works with all .tex files in a directory.
