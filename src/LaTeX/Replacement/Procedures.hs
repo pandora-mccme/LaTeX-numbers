@@ -16,45 +16,31 @@ toMathMode Replacement{..} = Replacement replacementPattern ("$$" <> replacement
 replaceAll_ :: ReplacementData -> Text -> Text
 replaceAll_ Replacement{..} = replaceAll replacementPattern replacementResult
 
+fractionalReplacement :: (ReplacementData -> ReplacementData) -> Text -> Text
+fractionalReplacement modifier txt =
+    replaceAll_ (modifier $ fractional1_1Rep False)
+  $ replaceAll_ (modifier $ fractional2_1Rep False)
+  $ replaceAll_ (modifier $ fractional1_2Rep False)
+  $ replaceAll_ (modifier $ fractional2_2Rep False)
+  $ replaceAll_ (modifier $ fractional3_2Rep False)
+  $ replaceAll_ (modifier $ fractional2_3Rep False)
+  $ replaceAll_ (modifier $ fractional3_3Rep False)
+  $ replaceAll_ (modifier $ fractional1_1Rep True)
+  $ replaceAll_ (modifier $ fractional2_1Rep True)
+  $ replaceAll_ (modifier $ fractional1_2Rep True)
+  $ replaceAll_ (modifier $ fractional2_2Rep True)
+  $ replaceAll_ (modifier $ fractional3_2Rep True)
+  $ replaceAll_ (modifier $ fractional2_3Rep True)
+  $ replaceAll_ (modifier $ fractional3_3Rep True)
+  $ replaceAll_ commaRep txt
+
 fractionalUpdateInner :: InsideMathMode -> Tagged Text -> Tagged Text
 fractionalUpdateInner True (Tagged content CMD) = (Tagged content CMD)
 fractionalUpdateInner False (Tagged content CMD) = (Tagged content CMD)
 fractionalUpdateInner False (Tagged content MathMode) = (Tagged content MathMode)
 fractionalUpdateInner True (Tagged content NormalMode) = (Tagged content NormalMode)
-fractionalUpdateInner False (Tagged content NormalMode) = (Tagged updated_content NormalMode)
-  where
-    updated_content = replaceAll_ (toMathMode $ fractional1_1Rep False)
-                    $ replaceAll_ (toMathMode $ fractional2_1Rep False)
-                    $ replaceAll_ (toMathMode $ fractional1_2Rep False)
-                    $ replaceAll_ (toMathMode $ fractional2_2Rep False)
-                    $ replaceAll_ (toMathMode $ fractional3_2Rep False)
-                    $ replaceAll_ (toMathMode $ fractional2_3Rep False)
-                    $ replaceAll_ (toMathMode $ fractional3_3Rep False)
-                    $ replaceAll_ (toMathMode $ fractional1_1Rep True)
-                    $ replaceAll_ (toMathMode $ fractional2_1Rep True)
-                    $ replaceAll_ (toMathMode $ fractional1_2Rep True)
-                    $ replaceAll_ (toMathMode $ fractional2_2Rep True)
-                    $ replaceAll_ (toMathMode $ fractional3_2Rep True)
-                    $ replaceAll_ (toMathMode $ fractional2_3Rep True)
-                    $ replaceAll_ (toMathMode $ fractional3_3Rep True)
-                    $ replaceAll_ commaRep content
-fractionalUpdateInner True (Tagged content MathMode) = (Tagged updated_content MathMode)
-  where
-    updated_content = replaceAll_ (fractional1_1Rep False)
-                    $ replaceAll_ (fractional2_1Rep False)
-                    $ replaceAll_ (fractional1_2Rep False)
-                    $ replaceAll_ (fractional2_2Rep False)
-                    $ replaceAll_ (fractional3_2Rep False)
-                    $ replaceAll_ (fractional2_3Rep False)
-                    $ replaceAll_ (fractional3_3Rep False)
-                    $ replaceAll_ (fractional1_1Rep True)
-                    $ replaceAll_ (fractional2_1Rep True)
-                    $ replaceAll_ (fractional1_2Rep True)
-                    $ replaceAll_ (fractional2_2Rep True)
-                    $ replaceAll_ (fractional3_2Rep True)
-                    $ replaceAll_ (fractional2_3Rep True)
-                    $ replaceAll_ (fractional3_3Rep True)
-                    $ replaceAll_ commaRep content
+fractionalUpdateInner False (Tagged content NormalMode) = (Tagged (fractionalReplacement toMathMode content) NormalMode)
+fractionalUpdateInner True (Tagged content MathMode) = (Tagged (fractionalReplacement id content) MathMode)
 
 fractionalUpdate :: Tagged Text -> Tagged Text
 fractionalUpdate = fractionalUpdateInner False
