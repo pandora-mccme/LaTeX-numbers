@@ -35,12 +35,11 @@ fractionalReplacement modifier txt =
   $ replaceAll_ commaRep txt
 
 fractionalUpdateInner :: InsideMathMode -> Tagged Text -> Tagged Text
-fractionalUpdateInner True (Tagged content CMD) = (Tagged content CMD)
-fractionalUpdateInner False (Tagged content CMD) = (Tagged content CMD)
 fractionalUpdateInner False (Tagged content MathMode) = (Tagged content MathMode)
 fractionalUpdateInner True (Tagged content NormalMode) = (Tagged content NormalMode)
 fractionalUpdateInner False (Tagged content NormalMode) = (Tagged (fractionalReplacement toMathMode content) NormalMode)
 fractionalUpdateInner True (Tagged content MathMode) = (Tagged (fractionalReplacement id content) MathMode)
+fractionalUpdateInner _ a = a
 
 fractionalUpdate :: Tagged Text -> Tagged Text
 fractionalUpdate = fractionalUpdateInner False
@@ -51,9 +50,9 @@ fractionalRevertUpdate = fractionalUpdateInner True
 integerUpdateInner :: InsideMathMode -> ReplacementData -> Tagged Text -> Tagged Text
 integerUpdateInner True _rep (Tagged content NormalMode) = (Tagged content NormalMode)
 integerUpdateInner True rep (Tagged content MathMode) = (Tagged (replaceAll_ rep content) MathMode)
-integerUpdateInner _ _rep (Tagged content CMD) = (Tagged content CMD)
 integerUpdateInner False rep (Tagged content NormalMode) = (Tagged (replaceAll_ (toMathMode rep) content) NormalMode)
 integerUpdateInner False _rep (Tagged content MathMode) = (Tagged content MathMode)
+integerUpdateInner _ _rep a = a
 
 timeUpdate :: Tagged Text -> Tagged Text
 timeUpdate (Tagged txt NormalMode) = Tagged (replaceAll_ (toMathMode timeRep) txt) NormalMode

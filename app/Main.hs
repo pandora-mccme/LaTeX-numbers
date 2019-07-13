@@ -41,13 +41,13 @@ updateFileData dict (Trimmed h body t) = Trimmed h new_body t
   where
     -- Tagged Text -> [Tagged Text] -> [Tagged Text] -> [[Tagged Text]] -> [Tagged Text] -> [Tagged Text] -> Tagged Text -> Text
     new_body = taggedBody . genConcat $ integer1Update
-           <$> (genConcat $ markMathMode mathModeDictionary . integer2RevertUpdate . integer2Update
-           <$> (genConcat $ markMathMode mathModeDictionary . integer3RevertUpdate . integer3Update
-           <$> (genConcat $ markMathMode mathModeDictionary . integer4RevertUpdate . integer4Update
-           <$> (genConcat $ markMathMode mathModeDictionary . integer5RevertUpdate . integer5Update
-           <$> (genConcat $ markMathMode mathModeDictionary . timeUpdate
-           <$> (genConcat $ markMathMode mathModeDictionary . fractionalRevertUpdate . fractionalUpdate
-           <$> (genConcat $ markCommands dict <$> markMathMode mathModeDictionary (Tagged body NormalMode))))))))
+           <$> (genConcat $ markMathMode . integer2RevertUpdate . integer2Update
+           <$> (genConcat $ markMathMode . integer3RevertUpdate . integer3Update
+           <$> (genConcat $ markMathMode . integer4RevertUpdate . integer4Update
+           <$> (genConcat $ markMathMode . integer5RevertUpdate . integer5Update
+           <$> (genConcat $ markMathMode . timeUpdate
+           <$> (genConcat $ markMathMode . fractionalRevertUpdate . fractionalUpdate
+           <$> (genConcat $ markCommands dict <$> markMathMode (Tagged body NormalMode))))))))
     
 run :: Bool -> FilePath -> FilePath -> IO ()
 run debug dictPath path = do
