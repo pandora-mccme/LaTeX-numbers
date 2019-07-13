@@ -8,7 +8,11 @@ import Data.Text.ICU (Regex)
 
 newtype Dictionary = Dictionary [Regex] deriving Show
 
-mathModeDictionary = Dictionary ["(\\$.*?\\$)","(\\\\(.*?\\\\)\\))"]
+mathModeDictionary = Dictionary ["(\\$.*?\\$)","(\\\\\\(.*?\\\\\\))"]
+
+boldDictionary = Dictionary ["(\\\\textbf\\{.*?\\})"]
+
+italicDictionary = Dictionary ["(\\\\textit\\{.*?\\})"]
 
 data Trimmed = Trimmed {
     trimmedHead :: Text
@@ -16,7 +20,7 @@ data Trimmed = Trimmed {
   , trimmedTail :: Text
   }
 
-data Mode = CMD | MathMode | NormalMode deriving (Enum, Ord, Eq)
+data Mode = CMD | Bold | Italic | MathMode | NormalMode deriving (Enum, Ord, Eq)
 
 data Tagged a = Tagged {
     taggedBody :: a

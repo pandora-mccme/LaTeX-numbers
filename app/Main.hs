@@ -36,18 +36,21 @@ parser = Opts
      <*> argPath "path" "Directory with LaTeX to fix."
      <*> switch  "debug" 'D' "Write changes to another file (debug mode)"
 
+-- Too hard. Should be chunked to be supportable.
 updateFileData :: Dictionary -> Trimmed -> Trimmed
 updateFileData dict (Trimmed h body t) = Trimmed h new_body t
   where
     -- Tagged Text -> [Tagged Text] -> [Tagged Text] -> [[Tagged Text]] -> [Tagged Text] -> [Tagged Text] -> Tagged Text -> Text
-    new_body = taggedBody . genConcat $ integer1NormalUpdate
+    new_body = taggedBody . genConcat $ mathItalicUpdate
+           <$> (markItalic . genConcat $ mathBoldUpdate
+           <$> (markBold . genConcat $ integer1NormalUpdate
            <$> (genConcat $ markMathMode . integer2MathUpdate . integer2NormalUpdate
            <$> (genConcat $ markMathMode . integer3MathUpdate . integer3NormalUpdate
            <$> (genConcat $ markMathMode . integer4MathUpdate . integer4NormalUpdate
            <$> (genConcat $ markMathMode . integer5MathUpdate . integer5NormalUpdate
            <$> (genConcat $ markMathMode . timeUpdate
            <$> (genConcat $ markMathMode . fractionalMathUpdate . fractionalNormalUpdate
-           <$> (genConcat $ markCommands dict <$> markMathMode (Tagged body NormalMode))))))))
+           <$> (genConcat $ markCommands dict <$> markMathMode (Tagged body NormalMode))))))))))
     
 run :: Bool -> FilePath -> FilePath -> IO ()
 run debug dictPath path = do

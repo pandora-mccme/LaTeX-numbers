@@ -55,3 +55,9 @@ markCommands = mark CMD
 
 markMathMode :: Tagged Text -> [Tagged Text]
 markMathMode = mark MathMode mathModeDictionary
+
+markBold :: Tagged Text -> [Tagged Text]
+markBold = mark Bold boldDictionary
+
+markItalic :: Tagged Text -> [Tagged Text]
+markItalic = mark Italic italicDictionary

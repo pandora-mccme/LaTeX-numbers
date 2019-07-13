@@ -11,6 +11,12 @@ import LaTeX.Types
 toMathMode :: ReplacementData -> ReplacementData
 toMathMode Replacement{..} = Replacement replacementPattern ("$$" <> replacementResult <> "$$")
 
+toItalic :: ReplacementData -> ReplacementData
+toItalic Replacement{..} = Replacement replacementPattern ("$$ \\mathit{" <> replacementResult <> "} $$")
+
+toBold :: ReplacementData -> ReplacementData
+toBold Replacement{..} = Replacement replacementPattern ("$$ \\mathbf{" <> replacementResult <> "} $$")
+
 replaceAll_ :: ReplacementData -> Text -> Text
 replaceAll_ Replacement{..} = replaceAll replacementPattern replacementResult
 
@@ -18,6 +24,13 @@ modifier :: Mode -> ReplacementData -> ReplacementData
 modifier MathMode = id
 modifier NormalMode = toMathMode
 modifier CMD = id
+modifier Italic = toItalic
+modifier Bold = toBold
+
+mathSpecialReplacement :: Mode -> Text -> Text
+mathSpecialReplacement mode txt =
+    replaceAll_ (modifier mode mathBracketsRep)
+  $ replaceAll_ (modifier mode mathDollarsRep) txt
 
 integerReplacement :: Mode -> ReplacementData -> Text -> Text
 integerReplacement mode rep = replaceAll_ (modifier mode rep)
@@ -53,6 +66,13 @@ fractionalNormalUpdate = fractionalUpdateInner NormalMode
 
 fractionalMathUpdate :: Tagged Text -> Tagged Text
 fractionalMathUpdate = fractionalUpdateInner MathMode
+
+mathSpecialUpdate :: Mode -> Tagged Text -> Tagged Text
+mathSpecialUpdate Italic (Tagged content Italic) = (Tagged (mathSpecialReplacement Italic content) Italic)
+mathSpecialUpdate Italic (Tagged content a) = (Tagged content a)
+mathSpecialUpdate Bold (Tagged content Bold) = (Tagged (mathSpecialReplacement Bold content) Bold)
+mathSpecialUpdate Bold (Tagged content a) = (Tagged content a)
+mathSpecialUpdate _ (Tagged content a) = (Tagged content a)
 
 integerUpdateInner :: Mode -> ReplacementData -> Tagged Text -> Tagged Text
 integerUpdateInner MathMode _rep (Tagged content NormalMode) = (Tagged content NormalMode)
@@ -91,3 +111,11 @@ integer4MathUpdate = integerUpdateInner MathMode integer4Rep
 
 integer5MathUpdate :: Tagged Text -> Tagged Text
 integer5MathUpdate = integerUpdateInner MathMode integer5Rep
+
+-- Assuming there is practically never $\textit{}$.
+-- replace by @mathModeDictionary regexps@. All text in math mode inside.
+mathItalicUpdate :: Tagged Text -> Tagged Text
+mathItalicUpdate = mathSpecialUpdate Italic
+
+mathBoldUpdate :: Tagged Text -> Tagged Text
+mathBoldUpdate = mathSpecialUpdate Bold

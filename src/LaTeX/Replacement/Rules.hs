@@ -58,3 +58,9 @@ integer2Rep = Replacement "(?<!$\\d)(\\d{1,3})~*(\\d{3})(?![$\\d])" "$1\\,$2"
 
 integer1Rep :: ReplacementData
 integer1Rep = Replacement "(?<!$\\d)(\\d{1,3})(?![$\\d])" "$1"
+
+mathBracketsRep :: ReplacementData
+mathBracketsRep = Replacement "\\\\\\((.*?)\\\\\\)" "$1"
+
+mathDollarsRep :: ReplacementData
+mathDollarsRep = Replacement "\\$(.*?)\\$" "$1"
