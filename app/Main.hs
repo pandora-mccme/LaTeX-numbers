@@ -40,13 +40,13 @@ updateFileData :: Dictionary -> Trimmed -> Trimmed
 updateFileData dict (Trimmed h body t) = Trimmed h new_body t
   where
     -- Tagged Text -> [Tagged Text] -> [Tagged Text] -> [[Tagged Text]] -> [Tagged Text] -> [Tagged Text] -> Tagged Text -> Text
-    new_body = taggedBody . genConcat $ integer1Update
-           <$> (genConcat $ markMathMode . integer2RevertUpdate . integer2Update
-           <$> (genConcat $ markMathMode . integer3RevertUpdate . integer3Update
-           <$> (genConcat $ markMathMode . integer4RevertUpdate . integer4Update
-           <$> (genConcat $ markMathMode . integer5RevertUpdate . integer5Update
+    new_body = taggedBody . genConcat $ integer1NormalUpdate
+           <$> (genConcat $ markMathMode . integer2MathUpdate . integer2NormalUpdate
+           <$> (genConcat $ markMathMode . integer3MathUpdate . integer3NormalUpdate
+           <$> (genConcat $ markMathMode . integer4MathUpdate . integer4NormalUpdate
+           <$> (genConcat $ markMathMode . integer5MathUpdate . integer5NormalUpdate
            <$> (genConcat $ markMathMode . timeUpdate
-           <$> (genConcat $ markMathMode . fractionalRevertUpdate . fractionalUpdate
+           <$> (genConcat $ markMathMode . fractionalMathUpdate . fractionalNormalUpdate
            <$> (genConcat $ markCommands dict <$> markMathMode (Tagged body NormalMode))))))))
     
 run :: Bool -> FilePath -> FilePath -> IO ()
