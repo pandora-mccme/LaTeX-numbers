@@ -1,3 +1,4 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module LaTeX.Types where
 
 import Data.Monoid
@@ -6,9 +7,13 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.ICU (Regex)
 
-newtype Dictionary = Dictionary [Regex] deriving Show
+newtype Dictionary = Dictionary [Regex] deriving (Show, Monoid)
 
-mathModeDictionary = Dictionary ["(\\$.*?\\$)","(\\\\(.*?\\\\)\\))"]
+defaultMathModeDictionary = Dictionary ["(\\$.*?\\$)","(\\\\\\(.*?\\\\\\))"]
+
+boldDictionary = Dictionary ["(\\\\textbf\\{.*?\\})"]
+
+italicDictionary = Dictionary ["(\\\\textit\\{.*?\\})"]
 
 data Trimmed = Trimmed {
     trimmedHead :: Text
@@ -16,7 +21,7 @@ data Trimmed = Trimmed {
   , trimmedTail :: Text
   }
 
-data Mode = CMD | MathMode | NormalMode deriving (Enum, Ord, Eq)
+data Mode = CMD | Bold | Italic | MathMode | NormalMode deriving (Enum, Ord, Eq)
 
 data Tagged a = Tagged {
     taggedBody :: a

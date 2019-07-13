@@ -8,94 +8,114 @@ import Data.Text.ICU.Replace (replaceAll)
 import LaTeX.Replacement.Rules
 import LaTeX.Types
 
-type InsideMathMode = Bool
-
 toMathMode :: ReplacementData -> ReplacementData
 toMathMode Replacement{..} = Replacement replacementPattern ("$$" <> replacementResult <> "$$")
+
+toItalic :: ReplacementData -> ReplacementData
+toItalic Replacement{..} = Replacement replacementPattern ("$$ \\mathit{" <> replacementResult <> "} $$")
+
+toBold :: ReplacementData -> ReplacementData
+toBold Replacement{..} = Replacement replacementPattern ("$$ \\mathbf{" <> replacementResult <> "} $$")
 
 replaceAll_ :: ReplacementData -> Text -> Text
 replaceAll_ Replacement{..} = replaceAll replacementPattern replacementResult
 
-fractionalUpdateInner :: InsideMathMode -> Tagged Text -> Tagged Text
-fractionalUpdateInner True (Tagged content CMD) = (Tagged content CMD)
-fractionalUpdateInner False (Tagged content CMD) = (Tagged content CMD)
-fractionalUpdateInner False (Tagged content MathMode) = (Tagged content MathMode)
-fractionalUpdateInner True (Tagged content NormalMode) = (Tagged content NormalMode)
-fractionalUpdateInner False (Tagged content NormalMode) = (Tagged updated_content NormalMode)
-  where
-    updated_content = replaceAll_ (toMathMode $ fractional1_1Rep False)
-                    $ replaceAll_ (toMathMode $ fractional2_1Rep False)
-                    $ replaceAll_ (toMathMode $ fractional1_2Rep False)
-                    $ replaceAll_ (toMathMode $ fractional2_2Rep False)
-                    $ replaceAll_ (toMathMode $ fractional3_2Rep False)
-                    $ replaceAll_ (toMathMode $ fractional2_3Rep False)
-                    $ replaceAll_ (toMathMode $ fractional3_3Rep False)
-                    $ replaceAll_ (toMathMode $ fractional1_1Rep True)
-                    $ replaceAll_ (toMathMode $ fractional2_1Rep True)
-                    $ replaceAll_ (toMathMode $ fractional1_2Rep True)
-                    $ replaceAll_ (toMathMode $ fractional2_2Rep True)
-                    $ replaceAll_ (toMathMode $ fractional3_2Rep True)
-                    $ replaceAll_ (toMathMode $ fractional2_3Rep True)
-                    $ replaceAll_ (toMathMode $ fractional3_3Rep True)
-                    $ replaceAll_ commaRep content
-fractionalUpdateInner True (Tagged content MathMode) = (Tagged updated_content MathMode)
-  where
-    updated_content = replaceAll_ (fractional1_1Rep False)
-                    $ replaceAll_ (fractional2_1Rep False)
-                    $ replaceAll_ (fractional1_2Rep False)
-                    $ replaceAll_ (fractional2_2Rep False)
-                    $ replaceAll_ (fractional3_2Rep False)
-                    $ replaceAll_ (fractional2_3Rep False)
-                    $ replaceAll_ (fractional3_3Rep False)
-                    $ replaceAll_ (fractional1_1Rep True)
-                    $ replaceAll_ (fractional2_1Rep True)
-                    $ replaceAll_ (fractional1_2Rep True)
-                    $ replaceAll_ (fractional2_2Rep True)
-                    $ replaceAll_ (fractional3_2Rep True)
-                    $ replaceAll_ (fractional2_3Rep True)
-                    $ replaceAll_ (fractional3_3Rep True)
-                    $ replaceAll_ commaRep content
+modifier :: Mode -> ReplacementData -> ReplacementData
+modifier MathMode = id
+modifier NormalMode = toMathMode
+modifier CMD = id
+modifier Italic = toItalic
+modifier Bold = toBold
 
-fractionalUpdate :: Tagged Text -> Tagged Text
-fractionalUpdate = fractionalUpdateInner False
+mathSpecialReplacement :: Mode -> Text -> Text
+mathSpecialReplacement mode txt =
+    replaceAll_ (modifier mode mathBracketsRep)
+  $ replaceAll_ (modifier mode mathDollarsRep) txt
 
-fractionalRevertUpdate :: Tagged Text -> Tagged Text
-fractionalRevertUpdate = fractionalUpdateInner True
+integerReplacement :: Mode -> ReplacementData -> Text -> Text
+integerReplacement mode rep = replaceAll_ (modifier mode rep)
 
-integerUpdateInner :: InsideMathMode -> ReplacementData -> Tagged Text -> Tagged Text
-integerUpdateInner True _rep (Tagged content NormalMode) = (Tagged content NormalMode)
-integerUpdateInner True rep (Tagged content MathMode) = (Tagged (replaceAll_ rep content) MathMode)
-integerUpdateInner _ _rep (Tagged content CMD) = (Tagged content CMD)
-integerUpdateInner False rep (Tagged content NormalMode) = (Tagged (replaceAll_ (toMathMode rep) content) NormalMode)
-integerUpdateInner False _rep (Tagged content MathMode) = (Tagged content MathMode)
+fractionalReplacement :: Mode -> Text -> Text
+fractionalReplacement mode txt =
+    replaceAll_ (modifier mode $ fractional1_1Rep False)
+  $ replaceAll_ (modifier mode $ fractional2_1Rep False)
+  $ replaceAll_ (modifier mode $ fractional1_2Rep False)
+  $ replaceAll_ (modifier mode $ fractional2_2Rep False)
+  $ replaceAll_ (modifier mode $ fractional3_2Rep False)
+  $ replaceAll_ (modifier mode $ fractional2_3Rep False)
+  $ replaceAll_ (modifier mode $ fractional3_3Rep False)
+  $ replaceAll_ (modifier mode $ fractional1_1Rep True)
+  $ replaceAll_ (modifier mode $ fractional2_1Rep True)
+  $ replaceAll_ (modifier mode $ fractional1_2Rep True)
+  $ replaceAll_ (modifier mode $ fractional2_2Rep True)
+  $ replaceAll_ (modifier mode $ fractional3_2Rep True)
+  $ replaceAll_ (modifier mode $ fractional2_3Rep True)
+  $ replaceAll_ (modifier mode $ fractional3_3Rep True)
+  $ replaceAll_ commaRep txt
+
+-- First arg -- mode to operate in.
+fractionalUpdateInner :: Mode -> Tagged Text -> Tagged Text
+fractionalUpdateInner NormalMode (Tagged content MathMode) = (Tagged content MathMode)
+fractionalUpdateInner MathMode (Tagged content NormalMode) = (Tagged content NormalMode)
+fractionalUpdateInner NormalMode (Tagged content NormalMode) = (Tagged (fractionalReplacement NormalMode content) NormalMode)
+fractionalUpdateInner MathMode (Tagged content MathMode) = (Tagged (fractionalReplacement MathMode content) MathMode)
+fractionalUpdateInner _ a = a
+
+fractionalNormalUpdate :: Tagged Text -> Tagged Text
+fractionalNormalUpdate = fractionalUpdateInner NormalMode
+
+fractionalMathUpdate :: Tagged Text -> Tagged Text
+fractionalMathUpdate = fractionalUpdateInner MathMode
+
+mathSpecialUpdate :: Mode -> Tagged Text -> Tagged Text
+mathSpecialUpdate Italic (Tagged content Italic) = (Tagged (mathSpecialReplacement Italic content) Italic)
+mathSpecialUpdate Italic (Tagged content a) = (Tagged content a)
+mathSpecialUpdate Bold (Tagged content Bold) = (Tagged (mathSpecialReplacement Bold content) Bold)
+mathSpecialUpdate Bold (Tagged content a) = (Tagged content a)
+mathSpecialUpdate _ (Tagged content a) = (Tagged content a)
+
+integerUpdateInner :: Mode -> ReplacementData -> Tagged Text -> Tagged Text
+integerUpdateInner MathMode _rep (Tagged content NormalMode) = (Tagged content NormalMode)
+integerUpdateInner MathMode rep (Tagged content MathMode) = (Tagged (integerReplacement MathMode rep content) MathMode)
+integerUpdateInner NormalMode rep (Tagged content NormalMode) = (Tagged (integerReplacement NormalMode rep content) NormalMode)
+integerUpdateInner NormalMode _rep (Tagged content MathMode) = (Tagged content MathMode)
+integerUpdateInner _ _rep a = a
 
 timeUpdate :: Tagged Text -> Tagged Text
 timeUpdate (Tagged txt NormalMode) = Tagged (replaceAll_ (toMathMode timeRep) txt) NormalMode
 timeUpdate a = a
 
-integer1Update :: Tagged Text -> Tagged Text
-integer1Update = integerUpdateInner False integer1Rep
+integer1NormalUpdate :: Tagged Text -> Tagged Text
+integer1NormalUpdate = integerUpdateInner NormalMode integer1Rep
 
-integer2Update :: Tagged Text -> Tagged Text
-integer2Update = integerUpdateInner False integer2Rep
+integer2NormalUpdate :: Tagged Text -> Tagged Text
+integer2NormalUpdate = integerUpdateInner NormalMode integer2Rep
 
-integer3Update :: Tagged Text -> Tagged Text
-integer3Update = integerUpdateInner False integer3Rep
+integer3NormalUpdate :: Tagged Text -> Tagged Text
+integer3NormalUpdate = integerUpdateInner NormalMode integer3Rep
 
-integer4Update :: Tagged Text -> Tagged Text
-integer4Update = integerUpdateInner False integer4Rep
+integer4NormalUpdate :: Tagged Text -> Tagged Text
+integer4NormalUpdate = integerUpdateInner NormalMode integer4Rep
 
-integer5Update :: Tagged Text -> Tagged Text
-integer5Update = integerUpdateInner False integer5Rep
+integer5NormalUpdate :: Tagged Text -> Tagged Text
+integer5NormalUpdate = integerUpdateInner NormalMode integer5Rep
 
-integer2RevertUpdate :: Tagged Text -> Tagged Text
-integer2RevertUpdate = integerUpdateInner True integer2Rep
+integer2MathUpdate :: Tagged Text -> Tagged Text
+integer2MathUpdate = integerUpdateInner MathMode integer2Rep
 
-integer3RevertUpdate :: Tagged Text -> Tagged Text
-integer3RevertUpdate = integerUpdateInner True integer3Rep
+integer3MathUpdate :: Tagged Text -> Tagged Text
+integer3MathUpdate = integerUpdateInner MathMode integer3Rep
 
-integer4RevertUpdate :: Tagged Text -> Tagged Text
-integer4RevertUpdate = integerUpdateInner True integer4Rep
+integer4MathUpdate :: Tagged Text -> Tagged Text
+integer4MathUpdate = integerUpdateInner MathMode integer4Rep
 
-integer5RevertUpdate :: Tagged Text -> Tagged Text
-integer5RevertUpdate = integerUpdateInner True integer5Rep
+integer5MathUpdate :: Tagged Text -> Tagged Text
+integer5MathUpdate = integerUpdateInner MathMode integer5Rep
+
+-- Assuming there is practically never $\textit{}$.
+-- replace by @mathModeDictionary regexps@. All text in math mode inside.
+mathItalicUpdate :: Tagged Text -> Tagged Text
+mathItalicUpdate = mathSpecialUpdate Italic
+
+mathBoldUpdate :: Tagged Text -> Tagged Text
+mathBoldUpdate = mathSpecialUpdate Bold

@@ -26,37 +26,42 @@ isBeginEnd a =
 
 readRegex :: Text -> Regex
 readRegex = regex []
+          -- Maybe I don't need it. I am already obliged to use escaping in dictionary.
           . T.replace "}" "\\}"
           . T.replace "{" "\\{"
           . T.replace "[" "\\["
           . T.replace "]" "\\]"
-          . (\t -> "(\\" <> t <> ")")
+          . (\t -> "(" <> t <> ")")
 
 splitByRegex :: Dictionary -> Text -> [Text]
 splitByRegex (Dictionary dict) txt =
-  T.splitOn "#^#^#^#^#" $ foldl (.) id (map (\pattern -> replaceAll pattern "#^#^#^#^#$1#^#^#^#^#") dict) txt
+  T.splitOn "%%%%%" $ foldl (.) id (map (\pattern -> replaceAll pattern "%%%%%$1%%%%%") dict) txt
 
--- tagAsNorm (splitByRegex pat bs)
 tagAsNorm :: Mode -> [Text] -> [Tagged Text]
 tagAsNorm _ [] = []
-tagAsNorm NormalMode txt = map (\a -> Tagged a NormalMode) txt
-tagAsNorm CMD (x:xs) = (Tagged x NormalMode): tagAsCmd xs
-tagAsNorm MathMode (x:xs) = (Tagged x NormalMode): tagAsCmd xs
+tagAsNorm NormalMode xs = map (\x -> (Tagged x NormalMode)) xs
+tagAsNorm nextMode (x:xs) = (Tagged x NormalMode): tagAs nextMode xs
 
-tagAsCmd :: [Text] -> [Tagged Text]
-tagAsCmd [] = []
-tagAsCmd (x:xs) = (Tagged x CMD): tagAsNorm CMD xs
+tagAs :: Mode -> [Text] -> [Tagged Text]
+tagAs _ [] = []
+tagAs mode (x:xs) = (Tagged x mode): tagAsNorm mode xs
 
-tagAsMath :: [Text] -> [Tagged Text]
-tagAsMath [] = []
-tagAsMath (x:xs) = (Tagged x MathMode): tagAsNorm MathMode xs
+-- Here is very strong assumption -- there can not be any `textbf`, `textit` and commands from dictionary inside math mode.
+mark :: Mode -> Dictionary -> Tagged Text -> [Tagged Text]
+mark wantedMode dict (Tagged a NormalMode) = tagAsNorm wantedMode (splitByRegex dict a)
+mark _ _ (Tagged a mode) = [Tagged a mode]
 
 markCommands :: Dictionary -> Tagged Text -> [Tagged Text]
-markCommands _dict (Tagged a CMD) = [Tagged a CMD]
-markCommands _dict (Tagged a MathMode) = [Tagged a MathMode]
-markCommands dict (Tagged a NormalMode) = tagAsNorm CMD (splitByRegex dict a)
+markCommands = mark CMD
 
-markMathMode :: Dictionary -> Tagged Text -> [Tagged Text]
-markMathMode _dict (Tagged a CMD) = [Tagged a CMD]
-markMathMode _dict (Tagged a MathMode) = [Tagged a MathMode]
-markMathMode dict (Tagged a NormalMode) = tagAsNorm MathMode (splitByRegex dict a)
+markMathModeExt :: Dictionary -> Tagged Text -> [Tagged Text]
+markMathModeExt mathDict = mark MathMode (defaultMathModeDictionary <> mathDict)
+
+markMathMode :: Tagged Text -> [Tagged Text]
+markMathMode = mark MathMode defaultMathModeDictionary
+
+markBold :: Tagged Text -> [Tagged Text]
+markBold = mark Bold boldDictionary
+
+markItalic :: Tagged Text -> [Tagged Text]
+markItalic = mark Italic italicDictionary

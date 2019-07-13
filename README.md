@@ -3,7 +3,7 @@ Edit numbers formatting in LaTeX files
 
 #### Rules:
 
-There is a dictionary of commands to be excluded from consideration.
+There is a dictionary of commands to be excluded from consideration and separate dictionary for commands modifying it's operand to math mode.
 
 All numbers outside of commands must be written in math mode.
 
@@ -15,7 +15,7 @@ Time is interpreted as single number.
 
 Works with all .tex files in a directory.
 
-`LaTeX-numbers -d <path to dictionary> <path to directory to work in>`.
+`LaTeX-numbers -d <path to dictionary> -m <path to dictionary of math mode> <path to directory to work in>`.
 
 For complete reference call `LaTeX-numbers -h`. **Important notice:** By default tool works in place of files. Enable writing to copies with `.test` extension by `-D` option.
 
@@ -23,17 +23,21 @@ Output of embedded help message:
 ```
 Fix number formatting through directory.
 
-Usage: LaTeX-numbers (-d|--dict DICT) PATH [-D|--debug]
+Usage: LaTeX-numbers (-d|--dict DICT) [-m|--math MATH] PATH [-D|--debug]
 
 Available options:
   -h,--help                Show this help text
   -d,--dict DICT           File with list of expressions not to change numbers
                            in.
+  -m,--math MATH           Nontrivial commands enabling math mode as side effect
+                           for text inside.
   PATH                     Directory with LaTeX to fix.
   -D,--debug               Write changes to another file (debug mode)
+
 ```
 
-Dictionary contains regular expressions (usually simple) for LaTeX commands with arguments. It supports line comments in Haskell syntax. `dict.txt` file here is an example. It's annotated in Russian, I can annotate it in English on a request.
+Dictionaries contain regular expressions (usually simple) for LaTeX commands with arguments. They support line comments in Haskell syntax.
+`dict.txt` and `math_dict.txt` files here are examplary. They're annotated in Russian, I can annotate them in English on a request.
 
 **Disclaimer**
 
