@@ -1,3 +1,4 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module LaTeX.Types where
 
 import Data.Monoid
@@ -6,9 +7,9 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.ICU (Regex)
 
-newtype Dictionary = Dictionary [Regex] deriving Show
+newtype Dictionary = Dictionary [Regex] deriving (Show, Monoid)
 
-mathModeDictionary = Dictionary ["(\\$.*?\\$)","(\\\\\\(.*?\\\\\\))"]
+defaultMathModeDictionary = Dictionary ["(\\$.*?\\$)","(\\\\\\(.*?\\\\\\))"]
 
 boldDictionary = Dictionary ["(\\\\textbf\\{.*?\\})"]
 

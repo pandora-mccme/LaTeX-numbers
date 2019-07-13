@@ -15,9 +15,10 @@ import LaTeX.Demarkation
 import LaTeX.Replacement.Procedures
 
 data Opts = Opts {
-    optsDictionary :: FilePath
-  , optsDirectory  :: FilePath
-  , optsDebug      :: Bool
+    optsDictionary     :: FilePath
+  , optsMathDictionary :: Maybe FilePath
+  , optsDirectory      :: FilePath
+  , optsDebug          :: Bool
   }
 
 outputExtensionDebug :: Text
@@ -33,12 +34,13 @@ outputTrimmed fp (Trimmed h b t) = writeTextFile fp $
 parser :: Parser Opts
 parser = Opts
      <$> optPath "dict" 'd' "File with list of expressions not to change numbers in."
+     <*> optional (optPath "math" 'm' "Nontrivial commands enabling math mode as side effect for text inside.")
      <*> argPath "path" "Directory with LaTeX to fix."
      <*> switch  "debug" 'D' "Write changes to another file (debug mode)"
 
 -- Too hard. Should be chunked to be supportable.
-updateFileData :: Dictionary -> Trimmed -> Trimmed
-updateFileData dict (Trimmed h body t) = Trimmed h new_body t
+updateFileData :: Dictionary -> Dictionary -> Trimmed -> Trimmed
+updateFileData dict mathDict (Trimmed h body t) = Trimmed h new_body t
   where
     -- Tagged Text -> [Tagged Text] -> [Tagged Text] -> [[Tagged Text]] -> [Tagged Text] -> [Tagged Text] -> Tagged Text -> Text
     new_body = taggedBody . genConcat $ mathItalicUpdate
@@ -50,15 +52,13 @@ updateFileData dict (Trimmed h body t) = Trimmed h new_body t
            <$> (genConcat $ markMathMode . integer5MathUpdate . integer5NormalUpdate
            <$> (genConcat $ markMathMode . timeUpdate
            <$> (genConcat $ markMathMode . fractionalMathUpdate . fractionalNormalUpdate
-           <$> (genConcat $ markCommands dict <$> markMathMode (Tagged body NormalMode))))))))))
+           <$> (genConcat $ markCommands dict <$> markMathModeExt mathDict (Tagged body NormalMode))))))))))
     
-run :: Bool -> FilePath -> FilePath -> IO ()
-run debug dictPath path = do
+run :: Bool -> Dictionary -> Dictionary -> FilePath -> IO ()
+run debug dict mathDict path = do
   mcontent <- trimEnds . map lineToText <$> fold (input path) Fold.list
   case mcontent of
-    Just content -> do
-      dictionary <- Dictionary <$> map readRegex . filter (\l -> (T.isPrefixOf "-- " l) || (l /= "")) . map lineToText <$> fold (input dictPath) Fold.list
-      outputTrimmed (Path.replaceExtension path ext) (updateFileData dictionary content)
+    Just content -> outputTrimmed (Path.replaceExtension path ext) (updateFileData dict mathDict content)
     Nothing -> return ()
   where
     ext = if debug
@@ -68,5 +68,20 @@ run debug dictPath path = do
 main :: IO ()
 main = do
   Opts{..} <- options "Fix number formatting through directory." parser
+
+  dictionary <- Dictionary 
+            <$> map readRegex . filter (\l -> (not $ T.isPrefixOf "-- " l) && (l /= "")) . map lineToText
+            <$> fold (input optsDictionary) Fold.list
+
+  mathDictionary <- case optsMathDictionary of
+    Just mdp -> Dictionary
+            <$> map readRegex . filter (\l -> (not $ T.isPrefixOf "-- " l) && (l /= "")) . map lineToText
+            <$> fold (input mdp) Fold.list
+    Nothing -> return $ Dictionary []
+
+  if optsDebug
+    then print dictionary >> print mathDictionary
+    else return ()
+
   files <- fold (find (suffix ".tex") optsDirectory) Fold.list
-  mapM_ (run optsDebug optsDictionary) files
+  mapM_ (run optsDebug dictionary mathDictionary) files

@@ -26,15 +26,16 @@ isBeginEnd a =
 
 readRegex :: Text -> Regex
 readRegex = regex []
+          -- Maybe I don't need it. I am already obliged to use escaping in dictionary.
           . T.replace "}" "\\}"
           . T.replace "{" "\\{"
           . T.replace "[" "\\["
           . T.replace "]" "\\]"
-          . (\t -> "(\\" <> t <> ")")
+          . (\t -> "(" <> t <> ")")
 
 splitByRegex :: Dictionary -> Text -> [Text]
 splitByRegex (Dictionary dict) txt =
-  T.splitOn "#^#^#^#^#" $ foldl (.) id (map (\pattern -> replaceAll pattern "#^#^#^#^#$1#^#^#^#^#") dict) txt
+  T.splitOn "%%%%%" $ foldl (.) id (map (\pattern -> replaceAll pattern "%%%%%$1%%%%%") dict) txt
 
 tagAsNorm :: Mode -> [Text] -> [Tagged Text]
 tagAsNorm _ [] = []
@@ -53,8 +54,11 @@ mark _ _ (Tagged a mode) = [Tagged a mode]
 markCommands :: Dictionary -> Tagged Text -> [Tagged Text]
 markCommands = mark CMD
 
+markMathModeExt :: Dictionary -> Tagged Text -> [Tagged Text]
+markMathModeExt mathDict = mark MathMode (defaultMathModeDictionary <> mathDict)
+
 markMathMode :: Tagged Text -> [Tagged Text]
-markMathMode = mark MathMode mathModeDictionary
+markMathMode = mark MathMode defaultMathModeDictionary
 
 markBold :: Tagged Text -> [Tagged Text]
 markBold = mark Bold boldDictionary
