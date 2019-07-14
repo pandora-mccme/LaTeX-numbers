@@ -13,6 +13,9 @@ Time is interpreted as single number.
 
 #### Usage:
 
+Tool has an external dependency -- it's icu library.
+You can install it by, e.g. `sudo apt install libicu-dev`(Ubuntu).
+
 Works with all .tex files in a directory.
 
 `LaTeX-numbers -d <path to dictionary> -m <path to dictionary of math mode> <path to directory to work in>`.
