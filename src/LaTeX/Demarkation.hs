@@ -52,7 +52,7 @@ mark wantedMode dict (Tagged a NormalMode) = tagAsNorm wantedMode (splitByRegex 
 mark _ _ (Tagged a mode) = [Tagged a mode]
 
 markCommands :: Dictionary -> Tagged Text -> [Tagged Text]
-markCommands = mark CMD
+markCommands dict = mark CMD (defaultCmdDictionary <> dict)
 
 markMathModeExt :: Dictionary -> Tagged Text -> [Tagged Text]
 markMathModeExt mathDict = mark MathMode (defaultMathModeDictionary <> mathDict)

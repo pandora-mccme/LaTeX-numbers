@@ -9,10 +9,16 @@ import Data.Text.ICU (Regex)
 
 newtype Dictionary = Dictionary [Regex] deriving (Show, Monoid)
 
+-- No replacements in comments.
+defaultCmdDictionary = Dictionary ["(%.*)"]
+
+-- $$, \(\)
 defaultMathModeDictionary = Dictionary ["(\\$.*?\\$)","(\\\\\\(.*?\\\\\\))"]
 
+-- \textbf{}
 boldDictionary = Dictionary ["(\\\\textbf\\{.*?\\})"]
 
+-- \textit{}
 italicDictionary = Dictionary ["(\\\\textit\\{.*?\\})"]
 
 data Trimmed = Trimmed {
