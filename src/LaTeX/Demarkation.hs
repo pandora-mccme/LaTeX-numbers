@@ -24,14 +24,16 @@ isBeginEnd a =
      "\\begin{document}" `T.isInfixOf` a
   || "\\end{document}" `T.isInfixOf` a
 
+makeReplacer :: Text -> Text -> Text
+makeReplacer symbol = T.replace symbol ("\\" <> symbol)
+
+replaceSpecials :: Text -> Text
+replaceSpecials = (foldl1 (.) spec) . T.replace "\\" "\\\\"
+-- Full list of regex special characters
+  where spec = map makeReplacer ["*",".","?","{","}","[","]","(",")","$","^","+","|"]
+
 readRegex :: Text -> Regex
-readRegex = regex []
-          -- Maybe I don't need it. I am already obliged to use escaping in dictionary.
-          . T.replace "}" "\\}"
-          . T.replace "{" "\\{"
-          . T.replace "[" "\\["
-          . T.replace "]" "\\]"
-          . (\t -> "(" <> t <> ")")
+readRegex = regex [] . T.replace "##" "(?s).*?" . (\t -> "(" <> t <> ")") . replaceSpecials
 
 splitByRegex :: Dictionary -> Text -> [Text]
 splitByRegex (Dictionary dict) txt =
