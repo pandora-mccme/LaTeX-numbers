@@ -35,7 +35,7 @@ readRegex = regex []
 
 splitByRegex :: Dictionary -> Text -> [Text]
 splitByRegex (Dictionary dict) txt =
-  T.splitOn "%%%%%" $ foldl (.) id (map (\pattern -> replaceAll pattern "%%%%%$1%%%%%") dict) txt
+  T.splitOn "#^#^#" $ foldl (.) id (map (\pattern -> replaceAll pattern "#^#^#$1#^#^#") dict) txt
 
 tagAsNorm :: Mode -> [Text] -> [Tagged Text]
 tagAsNorm _ [] = []
