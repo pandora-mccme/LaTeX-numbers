@@ -21,4 +21,4 @@
 \\tabcolsep=.*?\S+
 \\section\\*{.*?}
 \\section{.*?}
-\\begin{tikzpicture}(?s){.*?}\\end{tikzpicture}
+\\begin{tikzpicture}(?s).*?\\end{tikzpicture}
