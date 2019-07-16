@@ -13,6 +13,9 @@ data ReplacementData = Replacement {
 commaRep :: ReplacementData
 commaRep = Replacement "(\\d)\\{,\\}(\\d)" "$1,$2"
 
+spaceRep :: ReplacementData
+spaceRep = Replacement "(\\d)\\\\,(\\d)" "$1$2"
+
 fractional3_3Rep :: Malformed -> ReplacementData
 fractional3_3Rep True = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3})~*(\\d{3})\\.(\\d{1,3})~*(\\d{3})~*(\\d{3})(?![\\d])" "$1\\,$2\\,$3{,}$4$5$6"
 fractional3_3Rep False = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3})~*(\\d{3}),(\\d{1,3})~*(\\d{3})~*(\\d{3})(?![\\d])" "$1\\,$2\\,$3{,}$4$5$6"

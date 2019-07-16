@@ -28,34 +28,34 @@ modifier Italic = toItalic
 modifier Bold = toBold
 
 mathSpecialReplacement :: Mode -> Text -> Text
-mathSpecialReplacement mode txt =
+mathSpecialReplacement mode =
     replaceAll_ (modifier mode mathBracketsRep)
-  $ replaceAll_ (modifier mode mathDollarsRep) txt
+  . replaceAll_ (modifier mode mathDollarsRep)
 
 integerReplacement :: Mode -> ReplacementData -> Text -> Text
 integerReplacement mode rep = replaceAll_ (modifier mode rep)
 
 fractionalReplacement :: Mode -> Text -> Text
-fractionalReplacement mode txt =
+fractionalReplacement mode =
     replaceAll_ (modifier mode $ fractional1_1Rep False)
-  $ replaceAll_ (modifier mode $ fractional2_1Rep False)
-  $ replaceAll_ (modifier mode $ fractional1_2Rep False)
-  $ replaceAll_ (modifier mode $ fractional1_3Rep False)
-  $ replaceAll_ (modifier mode $ fractional3_1Rep False)
-  $ replaceAll_ (modifier mode $ fractional2_2Rep False)
-  $ replaceAll_ (modifier mode $ fractional3_2Rep False)
-  $ replaceAll_ (modifier mode $ fractional2_3Rep False)
-  $ replaceAll_ (modifier mode $ fractional3_3Rep False)
-  $ replaceAll_ (modifier mode $ fractional1_1Rep True)
-  $ replaceAll_ (modifier mode $ fractional2_1Rep True)
-  $ replaceAll_ (modifier mode $ fractional1_2Rep True)
-  $ replaceAll_ (modifier mode $ fractional1_3Rep True)
-  $ replaceAll_ (modifier mode $ fractional3_1Rep True)
-  $ replaceAll_ (modifier mode $ fractional2_2Rep True)
-  $ replaceAll_ (modifier mode $ fractional3_2Rep True)
-  $ replaceAll_ (modifier mode $ fractional2_3Rep True)
-  $ replaceAll_ (modifier mode $ fractional3_3Rep True)
-  $ replaceAll_ commaRep txt
+  . replaceAll_ (modifier mode $ fractional2_1Rep False)
+  . replaceAll_ (modifier mode $ fractional1_2Rep False)
+  . replaceAll_ (modifier mode $ fractional1_3Rep False)
+  . replaceAll_ (modifier mode $ fractional3_1Rep False)
+  . replaceAll_ (modifier mode $ fractional2_2Rep False)
+  . replaceAll_ (modifier mode $ fractional3_2Rep False)
+  . replaceAll_ (modifier mode $ fractional2_3Rep False)
+  . replaceAll_ (modifier mode $ fractional3_3Rep False)
+  . replaceAll_ (modifier mode $ fractional1_1Rep True)
+  . replaceAll_ (modifier mode $ fractional2_1Rep True)
+  . replaceAll_ (modifier mode $ fractional1_2Rep True)
+  . replaceAll_ (modifier mode $ fractional1_3Rep True)
+  . replaceAll_ (modifier mode $ fractional3_1Rep True)
+  . replaceAll_ (modifier mode $ fractional2_2Rep True)
+  . replaceAll_ (modifier mode $ fractional3_2Rep True)
+  . replaceAll_ (modifier mode $ fractional2_3Rep True)
+  . replaceAll_ (modifier mode $ fractional3_3Rep True)
+  . replaceAll_ commaRep
 
 -- First arg -- mode to operate in.
 fractionalUpdateInner :: Mode -> Tagged Text -> Tagged Text
@@ -84,6 +84,11 @@ integerUpdateInner MathMode rep (Tagged content MathMode) = (Tagged (integerRepl
 integerUpdateInner NormalMode rep (Tagged content NormalMode) = (Tagged (integerReplacement NormalMode rep content) NormalMode)
 integerUpdateInner NormalMode _rep (Tagged content MathMode) = (Tagged content MathMode)
 integerUpdateInner _ _rep a = a
+
+spaceUpdate :: Tagged Text -> Tagged Text
+spaceUpdate (Tagged txt NormalMode) = Tagged (replaceAll_ spaceRep txt) NormalMode
+spaceUpdate (Tagged txt MathMode) = Tagged (replaceAll_ spaceRep txt) MathMode
+spaceUpdate a = a
 
 timeUpdate :: Tagged Text -> Tagged Text
 timeUpdate (Tagged txt NormalMode) = Tagged (replaceAll_ (toMathMode timeRep) txt) NormalMode
