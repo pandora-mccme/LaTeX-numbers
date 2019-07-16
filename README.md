@@ -11,6 +11,8 @@ Decimals are always written as `d+{,}d+`. All numbers are splitted by chunks of 
 
 Time is interpreted as single number.
 
+Comments are almost never changed.
+
 #### Usage:
 
 Tool has an external dependency -- it's icu library.
@@ -39,7 +41,7 @@ Available options:
 
 ```
 
-Dictionaries contain regular expressions (usually simple) for LaTeX commands with arguments. They support line comments in Haskell syntax.
+Dictionaries contain templates for LaTeX commands with arguments. They support line comments in Haskell syntax. The only special sequence is `##`, which is equivalent to `(?s).*?`
 `dict.txt` and `math_dict.txt` files here are examplary. They're annotated in Russian, I can annotate them in English on a request.
 
 **Disclaimer**
