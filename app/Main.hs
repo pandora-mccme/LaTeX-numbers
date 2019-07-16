@@ -38,21 +38,42 @@ parser = Opts
      <*> argPath "path" "Directory with LaTeX to fix."
      <*> switch  "debug" 'D' "Write changes to another file (debug mode)"
 
--- Too hard. Should be chunked to be supportable.
+boldApply :: Tagged Text -> Tagged Text
+boldApply = foldMap mathBoldUpdate . markBold
+
+italicApply :: Tagged Text -> Tagged Text
+italicApply = foldMap mathItalicUpdate . markItalic
+
+-- Why not working?
+-- compose :: [a -> [a]] -> a -> [a]
+-- compose = foldl1 (\f1 f2 -> foldMap f1 . f2)
+-- Warning: not associative operation.
+mathApply :: Dictionary -> Dictionary -> Tagged Text -> Tagged Text
+-- mathApply dict mathDict = foldMap integer1NormalUpdate . compose actions
+--   where
+--     actions = [ markMathModeExt mathDict
+--               , markCommands dict
+--               , markMathMode . fractionalMathUpdate . fractionalNormalUpdate
+--               , markMathMode . timeUpdate
+--               , markMathMode . integer5MathUpdate . integer5NormalUpdate
+--               , markMathMode . integer4MathUpdate . integer4NormalUpdate
+--               , markMathMode . integer3MathUpdate . integer3NormalUpdate
+--               , markMathMode . integer2MathUpdate . integer2NormalUpdate
+--               ]
+mathApply dict mathDict = foldMap integer1NormalUpdate
+                        . foldMap (markMathMode . integer2MathUpdate . integer2NormalUpdate)
+                        . foldMap (markMathMode . integer3MathUpdate . integer3NormalUpdate)
+                        . foldMap (markMathMode . integer4MathUpdate . integer4NormalUpdate)
+                        . foldMap (markMathMode . integer5MathUpdate . integer5NormalUpdate)
+                        . foldMap (markMathMode . timeUpdate)
+                        . foldMap (markMathMode . fractionalMathUpdate . fractionalNormalUpdate)
+                        . foldMap (markCommands dict)
+                        . markMathModeExt mathDict
+
 updateFileData :: Dictionary -> Dictionary -> Trimmed -> Trimmed
 updateFileData dict mathDict (Trimmed h body t) = Trimmed h new_body t
   where
-    -- Tagged Text -> [Tagged Text] -> [Tagged Text] -> [[Tagged Text]] -> [Tagged Text] -> [Tagged Text] -> Tagged Text -> Text
-    new_body = taggedBody . genConcat $ mathItalicUpdate
-           <$> (markItalic . genConcat $ mathBoldUpdate
-           <$> (markBold . genConcat $ integer1NormalUpdate
-           <$> (genConcat $ markMathMode . integer2MathUpdate . integer2NormalUpdate
-           <$> (genConcat $ markMathMode . integer3MathUpdate . integer3NormalUpdate
-           <$> (genConcat $ markMathMode . integer4MathUpdate . integer4NormalUpdate
-           <$> (genConcat $ markMathMode . integer5MathUpdate . integer5NormalUpdate
-           <$> (genConcat $ markMathMode . timeUpdate
-           <$> (genConcat $ markMathMode . fractionalMathUpdate . fractionalNormalUpdate
-           <$> (genConcat $ markCommands dict <$> markMathModeExt mathDict (Tagged body NormalMode))))))))))
+    new_body = taggedBody . italicApply . boldApply . mathApply dict mathDict $ (Tagged body NormalMode)
     
 run :: Bool -> Dictionary -> Dictionary -> FilePath -> IO ()
 run debug dict mathDict path = do
