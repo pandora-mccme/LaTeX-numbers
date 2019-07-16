@@ -29,27 +29,8 @@ isBeginEnd a =
      "\\begin{document}" `T.isInfixOf` a
   || "\\end{document}" `T.isInfixOf` a
 
--- $
--- >>> makeReplacer "s" "tests"
--- "te\\st\\s"
-makeReplacer :: Text -> Text -> Text
-makeReplacer symbol = T.replace symbol ("\\" <> symbol)
-
--- $
--- >>> replaceSpecials "\\problem{S_1_1_1*}"
--- "\\\\problem\\{S_1_1_1\\*\\}"
-replaceSpecials :: Text -> Text
-replaceSpecials = (foldl1 (.) spec) . T.replace "\\" "\\\\"
--- Full list of regex special characters
-  where spec = map makeReplacer ["*",".","?","{","}","[","]","(",")","$","^","+","|"]
-
--- $
--- >>> readRegex "\\raisebox{##}[##][##]"
--- Regex "(\\\\raisebox\\{(?s).*?\\}\\[(?s).*?\\]\\[(?s).*?\\])"
--- >>> readRegex "\\begin{align*}##\\end{align*}"
--- Regex "(\\\\begin\\{align\\*\\}(?s).*?\\\\end\\{align\\*\\})"
 readRegex :: Text -> Regex
-readRegex = regex [] . T.replace "##" "(?s).*?" . (\t -> "(" <> t <> ")") . replaceSpecials
+readRegex = regex [] . (\t -> "(" <> t <> ")")
 
 -- Idea: odd indices are to be in dictionary. See doctest.
 
