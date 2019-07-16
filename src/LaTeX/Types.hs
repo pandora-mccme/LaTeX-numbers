@@ -37,7 +37,3 @@ data Tagged a = Tagged {
 instance Monoid a => Monoid (Tagged a) where
   mempty = Tagged mempty NormalMode
   mappend (Tagged a fa) (Tagged b fb) = Tagged (a <> b) (fa `max` fb) 
-
-genConcat :: Monoid a => [a] -> a
-genConcat [] = mempty
-genConcat (a:tail) = a <> genConcat tail
