@@ -35,6 +35,7 @@ mathSpecialReplacement mode =
 integerReplacement :: Mode -> ReplacementData -> Text -> Text
 integerReplacement mode rep = replaceAll_ (modifier mode rep)
 
+-- FIXME: rewrite with fold.
 fractionalReplacement :: Mode -> Text -> Text
 fractionalReplacement mode =
     replaceAll_ (modifier mode $ fractional1_1Rep False)
@@ -55,7 +56,6 @@ fractionalReplacement mode =
   . replaceAll_ (modifier mode $ fractional3_2Rep True)
   . replaceAll_ (modifier mode $ fractional2_3Rep True)
   . replaceAll_ (modifier mode $ fractional3_3Rep True)
-  . replaceAll_ commaRep
 
 -- First arg -- mode to operate in.
 fractionalUpdateInner :: Mode -> Tagged Text -> Tagged Text
@@ -85,10 +85,14 @@ integerUpdateInner NormalMode rep (Tagged content NormalMode) = (Tagged (integer
 integerUpdateInner NormalMode _rep (Tagged content MathMode) = (Tagged content MathMode)
 integerUpdateInner _ _rep a = a
 
-spaceUpdate :: Tagged Text -> Tagged Text
-spaceUpdate (Tagged txt NormalMode) = Tagged (replaceAll_ spaceRep txt) NormalMode
-spaceUpdate (Tagged txt MathMode) = Tagged (replaceAll_ spaceRep txt) MathMode
-spaceUpdate a = a
+clearFormatting :: Tagged Text -> Tagged Text
+clearFormatting (Tagged txt NormalMode) = Tagged (clearFormattingInner txt) NormalMode
+clearFormatting (Tagged txt MathMode) = Tagged (clearFormattingInner txt) MathMode
+clearFormatting a = a
+
+clearFormattingInner :: Text -> Text
+clearFormattingInner = replaceAll_ spaceRep
+                     . replaceAll_ commaRep
 
 timeUpdate :: Tagged Text -> Tagged Text
 timeUpdate (Tagged txt NormalMode) = Tagged (replaceAll_ (toMathMode timeRep) txt) NormalMode

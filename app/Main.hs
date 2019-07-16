@@ -44,7 +44,7 @@ boldApply = foldMap mathBoldUpdate . markBold
 italicApply :: Tagged Text -> Tagged Text
 italicApply = foldMap mathItalicUpdate . markItalic
 
--- Why not working?
+-- Why not working? FIXME
 -- compose :: [a -> [a]] -> a -> [a]
 -- compose = foldl1 (\f1 f2 -> foldMap f1 . f2)
 -- Warning: not associative operation.
@@ -67,7 +67,7 @@ mathApply dict mathDict = foldMap integer1NormalUpdate
                         . foldMap (markMathMode . integer5MathUpdate . integer5NormalUpdate)
                         . foldMap (markMathMode . timeUpdate)
                         . foldMap (markMathMode . fractionalMathUpdate . fractionalNormalUpdate)
-                        . foldMap (markMathMode . spaceUpdate)
+                        . foldMap (markMathMode . clearFormatting)
                         . foldMap (markCommands dict)
                         . markMathModeExt mathDict
 
