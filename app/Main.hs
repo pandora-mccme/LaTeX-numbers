@@ -66,8 +66,8 @@ mathApply dict mathDict = foldMap integer1NormalUpdate
                         . foldMap (markMathMode . integer4MathUpdate . integer4NormalUpdate)
                         . foldMap (markMathMode . integer5MathUpdate . integer5NormalUpdate)
                         . foldMap (markMathMode . timeUpdate)
-                        . foldMap (markMathMode . spaceUpdate)
                         . foldMap (markMathMode . fractionalMathUpdate . fractionalNormalUpdate)
+                        . foldMap (markMathMode . spaceUpdate)
                         . foldMap (markCommands dict)
                         . markMathModeExt mathDict
 
