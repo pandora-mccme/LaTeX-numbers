@@ -3,8 +3,6 @@ module LaTeX.Replacement.Rules where
 import Data.Text.ICU (Regex)
 import Data.Text.ICU.Replace (Replace)
 
-type Malformed = Bool
-
 data ReplacementData = Replacement {
     replacementPattern :: Regex
   , replacementResult  :: Replace
@@ -16,41 +14,32 @@ commaRep = Replacement "(\\d)\\{,\\}(\\d)" "$1,$2"
 spaceRep :: ReplacementData
 spaceRep = Replacement "(\\d)\\\\,(\\d)" "$1$2"
 
-fractional3_3Rep :: Malformed -> ReplacementData
-fractional3_3Rep True = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3})~*(\\d{3})\\.(\\d{1,3})~*(\\d{3})~*(\\d{3})(?![\\d])" "$1\\,$2\\,$3{,}$4$5$6"
-fractional3_3Rep False = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3})~*(\\d{3}),(\\d{1,3})~*(\\d{3})~*(\\d{3})(?![\\d])" "$1\\,$2\\,$3{,}$4$5$6"
+fractional3_3Rep :: ReplacementData
+fractional3_3Rep = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3})~*(\\d{3})[\\.,](\\d{1,3})~*(\\d{3})~*(\\d{3})(?![\\d])" "$1\\,$2\\,$3{,}$4$5$6"
 
-fractional2_3Rep :: Malformed -> ReplacementData
-fractional2_3Rep True = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3})\\.(\\d{1,3})~*(\\d{3})~*(\\d{3})(?![\\d])" "$1\\,$2{,}$3$4$5"
-fractional2_3Rep False = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3}),(\\d{1,3})~*(\\d{3})~*(\\d{3})(?![\\d])" "$1\\,$2{,}$3$4$5"
+fractional2_3Rep :: ReplacementData
+fractional2_3Rep = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3})[\\.,](\\d{1,3})~*(\\d{3})~*(\\d{3})(?![\\d])" "$1\\,$2{,}$3$4$5"
 
-fractional1_3Rep :: Malformed -> ReplacementData
-fractional1_3Rep True = Replacement "(?<!\\d)(\\d{1,3})\\.(\\d{1,3})~*(\\d{3})~*(\\d{3})(?![\\d])" "$1{,}$3$4$5"
-fractional1_3Rep False = Replacement "(?<!\\d)(\\d{1,3}),(\\d{1,3})~*(\\d{3})~*(\\d{3})(?![\\d])" "$1{,}$3$4$5"
+fractional1_3Rep :: ReplacementData
+fractional1_3Rep = Replacement "(?<!\\d)(\\d{1,3})[\\.,](\\d{1,3})~*(\\d{3})~*(\\d{3})(?![\\d])" "$1{,}$3$4$5"
 
-fractional3_2Rep :: Malformed -> ReplacementData
-fractional3_2Rep True = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3})~*(\\d{3})\\.(\\d{1,3})~*(\\d{3})(?![\\d])" "$1\\,$2\\,$3{,}$4$5"
-fractional3_2Rep False = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3})~*(\\d{3}),(\\d{1,3})~*(\\d{3})(?![\\d])" "$1\\,$2\\,$3{,}$4$5"
+fractional3_2Rep :: ReplacementData
+fractional3_2Rep = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3})~*(\\d{3})[\\.,](\\d{1,3})~*(\\d{3})(?![\\d])" "$1\\,$2\\,$3{,}$4$5"
 
-fractional3_1Rep :: Malformed -> ReplacementData
-fractional3_1Rep True = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3})~*(\\d{3})\\.(\\d{1,3})(?![\\d])" "$1\\,$2\\,$3{,}$4"
-fractional3_1Rep False = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3})~*(\\d{3}),(\\d{1,3})(?![\\d])" "$1\\,$2\\,$3{,}$4"
+fractional3_1Rep :: ReplacementData
+fractional3_1Rep = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3})~*(\\d{3})[\\.,](\\d{1,3})(?![\\d])" "$1\\,$2\\,$3{,}$4"
 
-fractional2_2Rep :: Malformed -> ReplacementData
-fractional2_2Rep True = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3})\\.(\\d{1,3})~*(\\d{3})(?![\\d])" "$1\\,$2{,}$3$4"
-fractional2_2Rep False = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3}),(\\d{1,3})~*(\\d{3})(?![\\d])" "$1\\,$2{,}$3$4"
+fractional2_2Rep :: ReplacementData
+fractional2_2Rep = Replacement "(?<!\\d)(\\d{1,3})~*(\\d{3})[\\.,](\\d{1,3})~*(\\d{3})(?![\\d])" "$1\\,$2{,}$3$4"
 
-fractional2_1Rep :: Malformed -> ReplacementData
-fractional2_1Rep True = Replacement "(?<!\\d)(\\d{1,3})\\.(\\d{1,3})~*(\\d{3})(?![\\d])" "$1{,}$2$3"
-fractional2_1Rep False = Replacement "(?<!\\d)(\\d{1,3}),(\\d{1,3})~*(\\d{3})(?![\\d])" "$1{,}$2$3"
+fractional2_1Rep :: ReplacementData
+fractional2_1Rep = Replacement "(?<!\\d)(\\d{1,3})[\\.,](\\d{1,3})~*(\\d{3})(?![\\d])" "$1{,}$2$3"
 
-fractional1_2Rep :: Malformed -> ReplacementData
-fractional1_2Rep True = Replacement "(?<!\\d)(\\d{2,3})~*(\\d{3})\\.(\\d{1,3})(?![\\d])" "$1\\,$2{,}$3"
-fractional1_2Rep False = Replacement "(?<!\\d)(\\d{2,3})~*(\\d{3}),(\\d{1,3})(?![\\d])" "$1\\,$2{,}$3"
+fractional1_2Rep :: ReplacementData
+fractional1_2Rep = Replacement "(?<!\\d)(\\d{2,3})~*(\\d{3})[\\.,](\\d{1,3})(?![\\d])" "$1\\,$2{,}$3"
 
-fractional1_1Rep :: Malformed -> ReplacementData
-fractional1_1Rep True = Replacement "(?<!\\d)(\\d{1,4})\\.(\\d{1,3})(?![\\d])" "$1{,}$2"
-fractional1_1Rep False = Replacement "(?<!\\d)(\\d{1,4}),(\\d{1,3})(?![\\d])" "$1{,}$2"
+fractional1_1Rep :: ReplacementData
+fractional1_1Rep = Replacement "(?<!\\d)(\\d{1,4})[\\.,](\\d{1,3})(?![\\d])" "$1{,}$2"
 
 timeRep :: ReplacementData
 timeRep = Replacement "(?<!\\d)(\\d{1,3}):(\\d{1,3})(?![\\d])" "$1:$2"

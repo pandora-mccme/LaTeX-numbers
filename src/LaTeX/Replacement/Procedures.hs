@@ -37,25 +37,12 @@ integerReplacement mode rep = replaceAll_ (modifier mode rep)
 
 -- FIXME: rewrite with fold.
 fractionalReplacement :: Mode -> Text -> Text
-fractionalReplacement mode =
-    replaceAll_ (modifier mode $ fractional1_1Rep False)
-  . replaceAll_ (modifier mode $ fractional2_1Rep False)
-  . replaceAll_ (modifier mode $ fractional1_2Rep False)
-  . replaceAll_ (modifier mode $ fractional1_3Rep False)
-  . replaceAll_ (modifier mode $ fractional3_1Rep False)
-  . replaceAll_ (modifier mode $ fractional2_2Rep False)
-  . replaceAll_ (modifier mode $ fractional3_2Rep False)
-  . replaceAll_ (modifier mode $ fractional2_3Rep False)
-  . replaceAll_ (modifier mode $ fractional3_3Rep False)
-  . replaceAll_ (modifier mode $ fractional1_1Rep True)
-  . replaceAll_ (modifier mode $ fractional2_1Rep True)
-  . replaceAll_ (modifier mode $ fractional1_2Rep True)
-  . replaceAll_ (modifier mode $ fractional1_3Rep True)
-  . replaceAll_ (modifier mode $ fractional3_1Rep True)
-  . replaceAll_ (modifier mode $ fractional2_2Rep True)
-  . replaceAll_ (modifier mode $ fractional3_2Rep True)
-  . replaceAll_ (modifier mode $ fractional2_3Rep True)
-  . replaceAll_ (modifier mode $ fractional3_3Rep True)
+fractionalReplacement mode = foldr1 (.) $ map (\rep -> replaceAll_ (modifier mode rep)) reps
+  where
+    reps = [ fractional1_1Rep, fractional2_1Rep, fractional1_2Rep
+           , fractional1_3Rep, fractional3_1Rep, fractional2_2Rep
+           , fractional3_2Rep, fractional2_3Rep, fractional3_3Rep
+           ]
 
 -- First arg -- mode to operate in.
 fractionalUpdateInner :: Mode -> Tagged Text -> Tagged Text
