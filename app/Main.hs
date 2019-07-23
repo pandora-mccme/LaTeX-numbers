@@ -12,7 +12,8 @@ import Data.Text (Text)
 import qualified Data.Text as T
 
 import LaTeX.Types
-import LaTeX.Demarkation
+import LaTeX.Demarkation (trimEnds, readRegex)
+import LaTeX.Executor
 
 data Opts = Opts {
     optsDictionary     :: FilePath

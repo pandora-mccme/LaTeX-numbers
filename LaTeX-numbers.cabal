@@ -12,6 +12,7 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     LaTeX.Demarkation
+                     , LaTeX.Executor
                      , LaTeX.Types
                      , LaTeX.Replacement.Rules
                      , LaTeX.Replacement.Procedures
