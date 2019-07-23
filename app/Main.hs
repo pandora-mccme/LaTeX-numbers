@@ -7,12 +7,12 @@ import Turtle
 import qualified Control.Foldl as Fold
 import qualified Filesystem.Path as Path
 
+import Data.Char
 import Data.Text (Text)
 import qualified Data.Text as T
 
 import LaTeX.Types
 import LaTeX.Demarkation
-import LaTeX.Replacement.Procedures
 
 data Opts = Opts {
     optsDictionary     :: FilePath
@@ -38,28 +38,6 @@ parser = Opts
      <*> argPath "path" "Directory with LaTeX to fix."
      <*> switch  "debug" 'D' "Write changes to another file (debug mode)"
 
-boldApply :: Tagged Text -> Tagged Text
-boldApply = foldMap mathBoldUpdate . markBold
-
-italicApply :: Tagged Text -> Tagged Text
-italicApply = foldMap mathItalicUpdate . markItalic
-
--- Warning: not associative operation.
-mathApply :: Dictionary -> Dictionary -> Tagged Text -> Tagged Text
-mathApply dict mathDict = foldMap integer1NormalUpdate . foldl1 (\f g x -> f x >>= g) actions
-  where
-    actions = [ markMathModeExt mathDict
-              , markCommands dict
-              -- FIXME. Should be composed in another way.
-              , return . clearFormatting
-              , markMathMode . fractionalMathUpdate . fractionalNormalUpdate
-              , markMathMode . timeUpdate
-              , markMathMode . integer5MathUpdate . integer5NormalUpdate
-              , markMathMode . integer4MathUpdate . integer4NormalUpdate
-              , markMathMode . integer3MathUpdate . integer3NormalUpdate
-              , markMathMode . integer2MathUpdate . integer2NormalUpdate
-              ]
-
 updateFileData :: Dictionary -> Dictionary -> Trimmed -> Trimmed
 updateFileData dict mathDict (Trimmed h body t) = Trimmed h new_body t
   where
@@ -75,19 +53,20 @@ run debug dict mathDict path = do
     ext = if debug
       then outputExtensionDebug
       else outputExtension
+
+readDictionary :: FilePath -> IO Dictionary
+readDictionary path = Dictionary 
+            <$> map readRegex . filter (\l -> (not $ T.isPrefixOf "-- " l) && (l /= "") && (not $ T.all isSpace l)) . map lineToText
+            <$> fold (input path) Fold.list
   
 main :: IO ()
 main = do
   Opts{..} <- options "Fix number formatting through directory." parser
 
-  dictionary <- Dictionary 
-            <$> map readRegex . filter (\l -> (not $ T.isPrefixOf "-- " l) && (l /= "")) . map lineToText
-            <$> fold (input optsDictionary) Fold.list
+  dictionary <- readDictionary optsDictionary
 
   mathDictionary <- case optsMathDictionary of
-    Just mdp -> Dictionary
-            <$> map readRegex . filter (\l -> (not $ T.isPrefixOf "-- " l) && (l /= "")) . map lineToText
-            <$> fold (input mdp) Fold.list
+    Just mdp -> readDictionary mdp
     Nothing -> return $ Dictionary []
 
   if optsDebug
