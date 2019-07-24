@@ -1,0 +1,24 @@
+version: 2
+
+jobs:
+  suite:
+    docker:
+      - image: haskell
+    steps:
+      - checkout
+      - run:
+          command: apt update
+      - run:
+          command: apt install -y libicu-dev
+      - run:
+          command: cabal update
+      - run:
+          command: cabal new-build
+      - run:
+          command: cabal new-test
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - suite
