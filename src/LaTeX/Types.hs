@@ -1,13 +1,15 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings #-}
 module LaTeX.Types where
 
 import Data.Monoid
+import Data.Semigroup
 
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.ICU (Regex)
 
-newtype Dictionary = Dictionary [Regex] deriving (Show, Monoid)
+newtype Dictionary = Dictionary [Regex] deriving (Show, Semigroup, Monoid)
 
 -- No replacements in comments.
 defaultCmdDictionary = Dictionary ["(%.*)"]
@@ -34,6 +36,8 @@ data Tagged a = Tagged {
   , taggedTag  :: Mode
   }
 
+instance Semigroup a => Semigroup (Tagged a) where
+  (<>) (Tagged a fa) (Tagged b fb) = Tagged (a Data.Semigroup.<> b) (fa `max` fb)
+
 instance Monoid a => Monoid (Tagged a) where
   mempty = Tagged mempty NormalMode
-  mappend (Tagged a fa) (Tagged b fb) = Tagged (a <> b) (fa `max` fb) 

@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module LaTeX.Demarkation where
 
 import Data.Monoid ((<>))
@@ -13,6 +14,9 @@ import Data.List.Split (splitWhen)
 import LaTeX.Types
 import LaTeX.Replacement.Procedures
 
+-- $setup
+-- >>> :set -XOverloadedStrings
+
 trimEnds :: [Text] -> Maybe Trimmed
 trimEnds content = case a of
     [h,b,t] -> Just $ Trimmed h b t
@@ -25,17 +29,35 @@ isBeginEnd a =
      "\\begin{document}" `T.isInfixOf` a
   || "\\end{document}" `T.isInfixOf` a
 
+-- $
+-- >>> makeReplacer "s" "tests"
+-- "te\\st\\s"
 makeReplacer :: Text -> Text -> Text
 makeReplacer symbol = T.replace symbol ("\\" <> symbol)
 
+-- $
+-- >>> replaceSpecials "\\problem{S_1_1_1*}"
+-- "\\\\problem\\{S_1_1_1\\*\\}"
 replaceSpecials :: Text -> Text
 replaceSpecials = (foldl1 (.) spec) . T.replace "\\" "\\\\"
 -- Full list of regex special characters
   where spec = map makeReplacer ["*",".","?","{","}","[","]","(",")","$","^","+","|"]
 
+-- $
+-- >>> readRegex "\\raisebox{##}[##][##]"
+-- Regex "(\\\\raisebox\\{(?s).*?\\}\\[(?s).*?\\]\\[(?s).*?\\])"
+-- >>> readRegex "\\begin{align*}##\\end{align*}"
+-- Regex "(\\\\begin\\{align\\*\\}(?s).*?\\\\end\\{align\\*\\})"
 readRegex :: Text -> Regex
 readRegex = regex [] . T.replace "##" "(?s).*?" . (\t -> "(" <> t <> ")") . replaceSpecials
 
+-- Idea: odd indices are to be in dictionary. See doctest.
+
+-- $
+-- >>> splitByRegex defaultMathModeDictionary "text $3$ with some $dfrac{1}{2}$ formula"
+-- ["text ","$3$"," with some ","$dfrac{1}{2}$"," formula"]
+-- >>> splitByRegex defaultMathModeDictionary "$3$ with some $dfrac{1}{2}$"
+-- ["","$3$"," with some ","$dfrac{1}{2}$",""]
 splitByRegex :: Dictionary -> Text -> [Text]
 splitByRegex (Dictionary dict) txt =
   T.splitOn "#^#^#" $ foldl (.) id (map (\pattern -> replaceAll pattern "#^#^#$1#^#^#") dict) txt

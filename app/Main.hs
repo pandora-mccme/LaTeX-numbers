@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
 -- Imported as to deal with filesystem instead of directory package.
