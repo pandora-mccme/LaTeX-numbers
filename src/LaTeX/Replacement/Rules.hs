@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module LaTeX.Replacement.Rules where
 
 import Data.Text.ICU (Regex)
