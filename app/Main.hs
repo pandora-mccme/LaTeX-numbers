@@ -22,6 +22,7 @@ data Opts = Opts {
   , optsMathDictionary :: Maybe FilePath
   , optsDirectory      :: FilePath
   , optsDebug          :: Bool
+  , optsRegex          :: Bool
   }
 
 outputExtensionDebug :: Text
@@ -39,7 +40,8 @@ parser = Opts
      <$> optPath "dict" 'd' "File with list of expressions not to change numbers in."
      <*> optional (optPath "math" 'm' "Nontrivial commands enabling math mode as side effect for text inside.")
      <*> argPath "path" "Directory with LaTeX to fix."
-     <*> switch  "debug" 'D' "Write changes to another file (debug mode)"
+     <*> switch  "debug" 'D' "Write changes to another file (debug mode)."
+     <*> switch  "regex" 'R' "Read dictionary entries as plain regular expressions."
 
 updateFileData :: Dictionary -> Dictionary -> Trimmed -> Trimmed
 updateFileData dict mathDict (Trimmed h body t) = Trimmed h new_body t
@@ -57,19 +59,19 @@ run debug dict mathDict path = do
       then outputExtensionDebug
       else outputExtension
 
-readDictionary :: FilePath -> IO Dictionary
-readDictionary path = Dictionary 
-            <$> map readRegex . filter (\l -> (not $ T.isPrefixOf "-- " l) && (l /= "") && (not $ T.all isSpace l)) . map lineToText
+readDictionary :: Bool -> FilePath -> IO Dictionary
+readDictionary regex path = Dictionary 
+            <$> map (readRegex regex) . filter (\l -> (not $ T.isPrefixOf "-- " l) && (l /= "") && (not $ T.all isSpace l)) . map lineToText
             <$> fold (input path) Fold.list
   
 main :: IO ()
 main = do
   Opts{..} <- options "Fix number formatting through directory." parser
 
-  dictionary <- readDictionary optsDictionary
+  dictionary <- readDictionary optsRegex optsDictionary
 
   mathDictionary <- case optsMathDictionary of
-    Just mdp -> readDictionary mdp
+    Just mdp -> readDictionary optsRegex mdp
     Nothing -> return $ Dictionary []
 
   if optsDebug

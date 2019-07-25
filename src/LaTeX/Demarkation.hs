@@ -44,12 +44,15 @@ replaceSpecials = (foldl1 (.) spec) . T.replace "\\" "\\\\"
   where spec = map makeReplacer ["*",".","?","{","}","[","]","(",")","$","^","+","|"]
 
 -- $
--- >>> readRegex "\\raisebox{##}[##][##]"
+-- >>> readRegex False "\\raisebox{##}[##][##]"
 -- Regex "(\\\\raisebox\\{(?s).*?\\}\\[(?s).*?\\]\\[(?s).*?\\])"
--- >>> readRegex "\\begin{align*}##\\end{align*}"
+-- >>> readRegex False "\\begin{align*}##\\end{align*}"
 -- Regex "(\\\\begin\\{align\\*\\}(?s).*?\\\\end\\{align\\*\\})"
-readRegex :: Text -> Regex
-readRegex = regex [] . T.replace "##" "(?s).*?" . (\t -> "(" <> t <> ")") . replaceSpecials
+-- >>> readRegex True "\\begin\{align\**\}(?s).*?\\end\{align\**\}"
+-- Regex "(\\\\begin\\{align\\**}(?s).*?\\\\end\\{align\\**})"
+readRegex :: Bool -> Text -> Regex
+readRegex False = regex [] . T.replace "##" "(?s).*?" . (\t -> "(" <> t <> ")") . replaceSpecials
+readRegex True = regex [] . (\t -> "(" <> t <> ")")
 
 -- Idea: odd indices are to be in dictionary. See doctest.
 
