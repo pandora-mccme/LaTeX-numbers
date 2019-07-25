@@ -2,7 +2,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module LaTeX.Types where
 
-import Data.Monoid
 import Data.Semigroup
 
 import Data.Text (Text)
@@ -37,7 +36,7 @@ data Tagged a = Tagged {
   }
 
 instance Semigroup a => Semigroup (Tagged a) where
-  (<>) (Tagged a fa) (Tagged b fb) = Tagged (a Data.Semigroup.<> b) (fa `max` fb)
+  (<>) (Tagged a fa) (Tagged b fb) = Tagged (a <> b) (fa `max` fb)
 
 instance Monoid a => Monoid (Tagged a) where
   mempty = Tagged mempty NormalMode
