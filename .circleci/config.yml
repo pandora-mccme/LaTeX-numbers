@@ -16,6 +16,12 @@ jobs:
           command: cabal new-build
       - run:
           command: cabal new-test
+      - run:
+          command: 'echo "symlink-bindir: /" >> /root/.cabal/config'
+      - run:
+          command: cabal new-install exe:LaTeX-numbers
+      - store_artifacts:
+          path: /LaTeX-numbers
 
 workflows:
   version: 2
