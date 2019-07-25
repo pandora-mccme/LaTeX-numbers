@@ -112,9 +112,22 @@ clearFormattingInner :: Text -> Text
 clearFormattingInner = replaceAll_ spaceRep
                      . replaceAll_ commaRep
 
-timeUpdate :: Tagged Text -> Tagged Text
-timeUpdate (Tagged txt NormalMode) = Tagged (replaceAll_ (toMathMode timeRep) txt) NormalMode
-timeUpdate a = a
+timeLongUpdate :: Tagged Text -> Tagged Text
+timeLongUpdate (Tagged txt NormalMode) = Tagged (timeUpdateInner NormalMode timeLongRep txt) NormalMode
+timeLongUpdate a = a
+
+timeShortUpdate :: Tagged Text -> Tagged Text
+timeShortUpdate (Tagged txt NormalMode) = Tagged (timeUpdateInner NormalMode timeShortRep txt) NormalMode
+timeShortUpdate a = a
+
+{- $
+-- >>> timeUpdateInner NormalMode timeShortRep "11:21"
+-- "$11:21$"
+-- >>> timeUpdateInner NormalMode timeLongRep "11:21:22"
+-- "$11:21:22$"
+-}
+timeUpdateInner :: Mode -> ReplacementData -> Text -> Text
+timeUpdateInner mode rep = replaceAll_ (modifier mode rep)
 
 integer1NormalUpdate :: Tagged Text -> Tagged Text
 integer1NormalUpdate = integerUpdateInner NormalMode integer1Rep
