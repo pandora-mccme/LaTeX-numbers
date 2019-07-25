@@ -4,7 +4,7 @@ module Main where
 
 -- Imported as to deal with filesystem instead of directory package.
 import Prelude hiding (FilePath)
-import Turtle
+import Turtle hiding (stdout, stderr)
 
 import qualified Control.Foldl as Fold
 import qualified Filesystem.Path as Path
