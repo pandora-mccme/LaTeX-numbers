@@ -46,15 +46,19 @@ mathSpecialReplacement mode =
   . replaceAll_ (modifier mode mathDollarsRep)
 
 {- $
--- >>> integerReplacement MathMode integer2Rep "1 22 334 4444 55555 666666 7777777 32,34"
+-- >>> commonReplacement MathMode integer2Rep "1 22 334 4444 55555 666666 7777777 32,34"
 -- "1 22 334 4444 55\\,555 666\\,666 7777777 32,34"
--- >>> integerReplacement MathMode integer3Rep "1 22 334 4444 55555 666666 7777777 32,34"
+-- >>> commonReplacement MathMode integer3Rep "1 22 334 4444 55555 666666 7777777 32,34"
 -- "1 22 334 4444 55555 666666 7\\,777\\,777 32,34"
--- >>> integerReplacement NormalMode integer1Rep "1 22 334 4444 55555 666666 7777777 32,34"
+-- >>> commonReplacement NormalMode integer1Rep "1 22 334 4444 55555 666666 7777777 32,34"
 -- "$1$ $22$ $334$ $4444$ 55555 666666 7777777 $32$,$34$"
+-- >>> commonReplacement NormalMode timeShortRep "11:21"
+-- "$11:21$"
+-- >>> commonReplacement NormalMode timeLongRep "11:21:22"
+-- "$11:21:22$"
 -}
-integerReplacement :: Mode -> ReplacementData -> Text -> Text
-integerReplacement mode rep = replaceAll_ (modifier mode rep)
+commonReplacement :: Mode -> ReplacementData -> Text -> Text
+commonReplacement mode rep = replaceAll_ (modifier mode rep)
 
 {- $
 -
@@ -95,8 +99,8 @@ mathSpecialUpdate _ (Tagged content a) = (Tagged content a)
 
 integerUpdateInner :: Mode -> ReplacementData -> Tagged Text -> Tagged Text
 integerUpdateInner MathMode _rep (Tagged content NormalMode) = (Tagged content NormalMode)
-integerUpdateInner MathMode rep (Tagged content MathMode) = (Tagged (integerReplacement MathMode rep content) MathMode)
-integerUpdateInner NormalMode rep (Tagged content NormalMode) = (Tagged (integerReplacement NormalMode rep content) NormalMode)
+integerUpdateInner MathMode rep (Tagged content MathMode) = (Tagged (commonReplacement MathMode rep content) MathMode)
+integerUpdateInner NormalMode rep (Tagged content NormalMode) = (Tagged (commonReplacement NormalMode rep content) NormalMode)
 integerUpdateInner NormalMode _rep (Tagged content MathMode) = (Tagged content MathMode)
 integerUpdateInner _ _rep a = a
 
@@ -113,21 +117,12 @@ clearFormattingInner = replaceAll_ spaceRep
                      . replaceAll_ commaRep
 
 timeLongUpdate :: Tagged Text -> Tagged Text
-timeLongUpdate (Tagged txt NormalMode) = Tagged (timeUpdateInner NormalMode timeLongRep txt) NormalMode
+timeLongUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeLongRep txt) NormalMode
 timeLongUpdate a = a
 
 timeShortUpdate :: Tagged Text -> Tagged Text
-timeShortUpdate (Tagged txt NormalMode) = Tagged (timeUpdateInner NormalMode timeShortRep txt) NormalMode
+timeShortUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeShortRep txt) NormalMode
 timeShortUpdate a = a
-
-{- $
--- >>> timeUpdateInner NormalMode timeShortRep "11:21"
--- "$11:21$"
--- >>> timeUpdateInner NormalMode timeLongRep "11:21:22"
--- "$11:21:22$"
--}
-timeUpdateInner :: Mode -> ReplacementData -> Text -> Text
-timeUpdateInner mode rep = replaceAll_ (modifier mode rep)
 
 integer1NormalUpdate :: Tagged Text -> Tagged Text
 integer1NormalUpdate = integerUpdateInner NormalMode integer1Rep
