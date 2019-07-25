@@ -48,8 +48,8 @@ replaceSpecials = (foldl1 (.) spec) . T.replace "\\" "\\\\"
 -- Regex "(\\\\raisebox\\{(?s).*?\\}\\[(?s).*?\\]\\[(?s).*?\\])"
 -- >>> readRegex False "\\begin{align*}##\\end{align*}"
 -- Regex "(\\\\begin\\{align\\*\\}(?s).*?\\\\end\\{align\\*\\})"
--- >>> readRegex True "\\begin\{align\**\}(?s).*?\\end\{align\**\}"
--- Regex "(\\\\begin\\{align\\**}(?s).*?\\\\end\\{align\\**})"
+-- >>> readRegex True "\\\\begin\\{align\\**\\}(?s).*?\\\\end\\{align\\**\\}"
+-- Regex "(\\\\begin\\{align\\**\\}(?s).*?\\\\end\\{align\\**\\})"
 readRegex :: Bool -> Text -> Regex
 readRegex False = regex [] . T.replace "##" "(?s).*?" . (\t -> "(" <> t <> ")") . replaceSpecials
 readRegex True = regex [] . (\t -> "(" <> t <> ")")
