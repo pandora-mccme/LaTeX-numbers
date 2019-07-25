@@ -34,31 +34,36 @@ modifier Bold = toBold
 
 -- FIXME: @Replacement@ functions must not permit inapplicable @Mode@ arguments.
 
+{- $
 -- >>> mathSpecialReplacement NormalMode "\\(33,22\\)"
 -- "$33,22$"
 -- >>> mathSpecialReplacement NormalMode "$33,22$"
 -- "$33,22$"
+-}
 mathSpecialReplacement :: Mode -> Text -> Text
 mathSpecialReplacement mode =
     replaceAll_ (modifier mode mathBracketsRep)
   . replaceAll_ (modifier mode mathDollarsRep)
 
--- $
+{- $
 -- >>> integerReplacement MathMode integer2Rep "1 22 334 4444 55555 666666 7777777 32,34"
 -- "1 22 334 4444 55\\,555 666\\,666 7777777 32,34"
 -- >>> integerReplacement MathMode integer3Rep "1 22 334 4444 55555 666666 7777777 32,34"
 -- "1 22 334 4444 55555 666666 7\\,777\\,777 32,34"
 -- >>> integerReplacement NormalMode integer1Rep "1 22 334 4444 55555 666666 7777777 32,34"
 -- "$1$ $22$ $334$ $4444$ 55555 666666 7777777 $32$,$34$"
+-}
 integerReplacement :: Mode -> ReplacementData -> Text -> Text
 integerReplacement mode rep = replaceAll_ (modifier mode rep)
 
--- $
+{- $
+-
 -- Doc: is always executed after @clearFormattingInner@
 -- >>> fractionalReplacement MathMode "1,23 1.23 1{,}23 1.34555 1111.23 111111.3 1111111{,}3 1111111,3 d,d"
 -- "1{,}23 1{,}23 1{,}23 1{,}34555 1111{,}23 111\\,111{,}3 1111111{,}3 1\\,111\\,111{,}3 d,d"
 -- >>> fractionalReplacement NormalMode "1,23 1.23 1{,}23 1.34555 1111.23 111111.3 1111111{,}3 1111111,3 d,d"
 -- "$1{,}23$ $1{,}23$ 1{,}23 $1{,}34555$ $1111{,}23$ $111\\,111{,}3$ 1111111{,}3 $1\\,111\\,111{,}3$ d,d"
+-}
 fractionalReplacement :: Mode -> Text -> Text
 fractionalReplacement mode = foldr1 (.) $ map (\rep -> replaceAll_ (modifier mode rep)) reps
   where

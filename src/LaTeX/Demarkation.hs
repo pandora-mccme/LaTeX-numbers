@@ -43,24 +43,26 @@ replaceSpecials = (foldl1 (.) spec) . T.replace "\\" "\\\\"
 -- Full list of regex special characters
   where spec = map makeReplacer ["*",".","?","{","}","[","]","(",")","$","^","+","|"]
 
--- $
+{- $
 -- >>> readRegex False "\\raisebox{##}[##][##]"
 -- Regex "(\\\\raisebox\\{(?s).*?\\}\\[(?s).*?\\]\\[(?s).*?\\])"
 -- >>> readRegex False "\\begin{align*}##\\end{align*}"
 -- Regex "(\\\\begin\\{align\\*\\}(?s).*?\\\\end\\{align\\*\\})"
 -- >>> readRegex True "\\\\begin\\{align\\**\\}(?s).*?\\\\end\\{align\\**\\}"
 -- Regex "(\\\\begin\\{align\\**\\}(?s).*?\\\\end\\{align\\**\\})"
+-}
 readRegex :: Bool -> Text -> Regex
 readRegex False = regex [] . T.replace "##" "(?s).*?" . (\t -> "(" <> t <> ")") . replaceSpecials
 readRegex True = regex [] . (\t -> "(" <> t <> ")")
 
 -- Idea: odd indices are to be in dictionary. See doctest.
 
--- $
+{- $
 -- >>> splitByRegex defaultMathModeDictionary "text $3$ with some $dfrac{1}{2}$ formula"
 -- ["text ","$3$"," with some ","$dfrac{1}{2}$"," formula"]
 -- >>> splitByRegex defaultMathModeDictionary "$3$ with some $dfrac{1}{2}$"
 -- ["","$3$"," with some ","$dfrac{1}{2}$",""]
+-}
 splitByRegex :: Dictionary -> Text -> [Text]
 splitByRegex (Dictionary dict) txt =
   T.splitOn "#^#^#" $ foldl (.) id (map (\pattern -> replaceAll pattern "#^#^#$1#^#^#") dict) txt
