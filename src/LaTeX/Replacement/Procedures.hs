@@ -57,6 +57,8 @@ mathSpecialReplacement mode =
 -- "$11:21$"
 -- >>> commonReplacement NormalMode timeLongRep "11:21:22"
 -- "$11:21:22$"
+-- >>> commonReplacement NormalMode timeMilliRep "11:21:22:111"
+-- "$11:21:22:111$"
 -}
 commonReplacement :: Mode -> ReplacementData -> Text -> Text
 commonReplacement mode rep = replaceAll (modifier mode rep)
@@ -117,13 +119,17 @@ clearFormattingInner :: Text -> Text
 clearFormattingInner = replaceAll spaceRep
                      . replaceAll commaRep
 
-timeLongUpdate :: Tagged Text -> Tagged Text
-timeLongUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeLongRep txt) NormalMode
-timeLongUpdate a = a
+timeMsUpdate :: Tagged Text -> Tagged Text
+timeMsUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeMsRep txt) NormalMode
+timeMsUpdate a = a
 
-timeShortUpdate :: Tagged Text -> Tagged Text
-timeShortUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeShortRep txt) NormalMode
-timeShortUpdate a = a
+timeSUpdate :: Tagged Text -> Tagged Text
+timeSUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeSRep txt) NormalMode
+timeSUpdate a = a
+
+timeMUpdate :: Tagged Text -> Tagged Text
+timeMUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeMRep txt) NormalMode
+timeMUpdate a = a
 
 integer1NormalUpdate :: Tagged Text -> Tagged Text
 integer1NormalUpdate = integerUpdateInner NormalMode integer1Rep

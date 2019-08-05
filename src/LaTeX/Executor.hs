@@ -21,8 +21,9 @@ mathApply dict mathDict = foldMap integer1NormalUpdate . foldl1 (\f g x -> f x >
               -- FIXME. Should be composed in another way.
               , return . clearFormatting
               , markMathMode . fractionalMathUpdate . fractionalNormalUpdate
-              , markMathMode . timeLongUpdate
-              , markMathMode . timeShortUpdate
+              , markMathMode . timeMsUpdate
+              , markMathMode . timeSUpdate
+              , markMathMode . timeMUpdate
               , markMathMode . integer5MathUpdate . integer5NormalUpdate
               , markMathMode . integer4MathUpdate . integer4NormalUpdate
               , markMathMode . integer3MathUpdate . integer3NormalUpdate

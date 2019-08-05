@@ -63,13 +63,18 @@ fractional1_1Rep = Replacement
   [re|(\d{1,4})[\.,](\d{1,3})|]
   (\(s1:s2:_) -> s1 <> "{,}" <> s2)
 
-timeShortRep :: ReplacementData
-timeShortRep = Replacement
+timeMRep :: ReplacementData
+timeMRep = Replacement
   [re|(\d{1,2}):(\d{1,2})|]
   (\(s1:s2:_) -> s1 <> ":" <> s2)
 
-timeLongRep :: ReplacementData
-timeLongRep = Replacement
+timeMsRep :: ReplacementData
+timeMsRep = Replacement
+  [re|(\d{1,2}):(\d{1,2}):(\d{1,2}):(\d{1,3})|]
+  (\(s1:s2:s3:s4:_) -> s1 <> ":" <> s2 <> ":" <> s3 <> ":" <> s4)
+
+timeSRep :: ReplacementData
+timeSRep = Replacement
   [re|(\d{1,2}):(\d{1,2}):(\d{1,2})|]
   (\(s1:s2:s3:_) -> s1 <> ":" <> s2 <> ":" <> s3)
 
