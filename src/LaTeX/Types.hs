@@ -1,26 +1,33 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 module LaTeX.Types where
 
 import Data.Semigroup
 
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Text.ICU (Regex)
+
+import Text.Regex.PCRE.Heavy
+
+data ReplacementData = Replacement {
+    replacementPattern :: Regex
+  , replacementResult  :: [Text] -> Text
+  }
 
 newtype Dictionary = Dictionary [Regex] deriving (Show, Semigroup, Monoid)
 
 -- No replacements in comments.
-defaultCmdDictionary = Dictionary ["(%.*)"]
+defaultCmdDictionary = Dictionary [[re|(%.*)|]]
 
 -- $$, \(\)
-defaultMathModeDictionary = Dictionary ["(\\$.*?\\$)","(\\\\\\(.*?\\\\\\))"]
+defaultMathModeDictionary = Dictionary [[re|(\$.*?\$)|],[re|(\\\(.*?\\\))|]]
 
 -- \textbf{}
-boldDictionary = Dictionary ["(\\\\textbf\\{.*?\\})"]
+boldDictionary = Dictionary [[re|(\\textbf\{.*?\})|]]
 
 -- \textit{}
-italicDictionary = Dictionary ["(\\\\textit\\{.*?\\})"]
+italicDictionary = Dictionary [[re|(\\textit\{.*?\})|]]
 
 data Trimmed = Trimmed {
     trimmedHead :: Text

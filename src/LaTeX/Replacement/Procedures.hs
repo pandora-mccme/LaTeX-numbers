@@ -5,7 +5,8 @@ module LaTeX.Replacement.Procedures where
 import Data.Monoid ((<>))
 
 import Data.Text (Text)
-import Data.Text.ICU.Replace (replaceAll)
+
+import Text.Regex.PCRE.Heavy
 
 import LaTeX.Replacement.Rules
 import LaTeX.Types
@@ -14,16 +15,16 @@ import LaTeX.Types
 -- >>> :set -XOverloadedStrings
 
 toMathMode :: ReplacementData -> ReplacementData
-toMathMode Replacement{..} = Replacement replacementPattern ("$$" <> replacementResult <> "$$")
+toMathMode Replacement{..} = Replacement replacementPattern ((\s -> "$" <> s <> "$") . replacementResult)
 
 toItalic :: ReplacementData -> ReplacementData
-toItalic Replacement{..} = Replacement replacementPattern ("$$ \\mathit{" <> replacementResult <> "} $$")
+toItalic Replacement{..} = Replacement replacementPattern ((\s -> "$ \\mathit{" <> s <> "} $") . replacementResult)
 
 toBold :: ReplacementData -> ReplacementData
-toBold Replacement{..} = Replacement replacementPattern ("$$ \\mathbf{" <> replacementResult <> "} $$")
+toBold Replacement{..} = Replacement replacementPattern ((\s -> "$ \\mathbf{" <> s <> "} $") . replacementResult)
 
-replaceAll_ :: ReplacementData -> Text -> Text
-replaceAll_ Replacement{..} = replaceAll replacementPattern replacementResult
+replaceAll :: ReplacementData -> Text -> Text
+replaceAll Replacement{..} = gsub replacementPattern replacementResult
 
 modifier :: Mode -> ReplacementData -> ReplacementData
 modifier MathMode = id
@@ -42,8 +43,8 @@ modifier Bold = toBold
 -}
 mathSpecialReplacement :: Mode -> Text -> Text
 mathSpecialReplacement mode =
-    replaceAll_ (modifier mode mathBracketsRep)
-  . replaceAll_ (modifier mode mathDollarsRep)
+    replaceAll (modifier mode mathBracketsRep)
+  . replaceAll (modifier mode mathDollarsRep)
 
 {- $
 -- >>> commonReplacement MathMode integer2Rep "1 22 334 4444 55555 666666 7777777 32,34"
@@ -56,9 +57,11 @@ mathSpecialReplacement mode =
 -- "$11:21$"
 -- >>> commonReplacement NormalMode timeLongRep "11:21:22"
 -- "$11:21:22$"
+-- >>> commonReplacement NormalMode timeMilliRep "11:21:22:111"
+-- "$11:21:22:111$"
 -}
 commonReplacement :: Mode -> ReplacementData -> Text -> Text
-commonReplacement mode rep = replaceAll_ (modifier mode rep)
+commonReplacement mode rep = replaceAll (modifier mode rep)
 
 {- $
 -
@@ -69,7 +72,7 @@ commonReplacement mode rep = replaceAll_ (modifier mode rep)
 -- "$1{,}23$ $1{,}23$ 1{,}23 $1{,}34555$ $1111{,}23$ $111\\,111{,}3$ 1111111{,}3 $1\\,111\\,111{,}3$ d,d"
 -}
 fractionalReplacement :: Mode -> Text -> Text
-fractionalReplacement mode = foldr1 (.) $ map (\rep -> replaceAll_ (modifier mode rep)) reps
+fractionalReplacement mode = foldr1 (.) $ map (\rep -> replaceAll (modifier mode rep)) reps
   where
     reps = [ fractional1_1Rep, fractional2_1Rep, fractional1_2Rep
            , fractional1_3Rep, fractional3_1Rep, fractional2_2Rep
@@ -113,16 +116,20 @@ clearFormatting a = a
 -- >>> clearFormattingInner "11{,}21 11{,}2 22{,}2 2{,} 2,2 d{,}d 2\\,2 a\\,2 \\, {,} , 2\\, \\,2"
 -- "11,21 11,2 22,2 2{,} 2,2 d{,}d 22 a\\,2 \\, {,} , 2\\, \\,2"
 clearFormattingInner :: Text -> Text
-clearFormattingInner = replaceAll_ spaceRep
-                     . replaceAll_ commaRep
+clearFormattingInner = replaceAll spaceRep
+                     . replaceAll commaRep
 
-timeLongUpdate :: Tagged Text -> Tagged Text
-timeLongUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeLongRep txt) NormalMode
-timeLongUpdate a = a
+timeMsUpdate :: Tagged Text -> Tagged Text
+timeMsUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeMsRep txt) NormalMode
+timeMsUpdate a = a
 
-timeShortUpdate :: Tagged Text -> Tagged Text
-timeShortUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeShortRep txt) NormalMode
-timeShortUpdate a = a
+timeSUpdate :: Tagged Text -> Tagged Text
+timeSUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeSRep txt) NormalMode
+timeSUpdate a = a
+
+timeMUpdate :: Tagged Text -> Tagged Text
+timeMUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeMRep txt) NormalMode
+timeMUpdate a = a
 
 integer1NormalUpdate :: Tagged Text -> Tagged Text
 integer1NormalUpdate = integerUpdateInner NormalMode integer1Rep

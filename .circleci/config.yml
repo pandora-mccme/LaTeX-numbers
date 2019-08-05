@@ -9,7 +9,7 @@ jobs:
       - run:
           command: apt update
       - run:
-          command: apt install -y libicu-dev
+          command: apt install -y libpcre3-dev
       - run:
           command: cabal update
       - run:
