@@ -60,10 +60,16 @@ run debug dict mathDict path = do
       else outputExtension
 
 readDictionary :: Bool -> FilePath -> IO Dictionary
-readDictionary regex path = Dictionary 
-            <$> map (readRegex regex) . filter (\l -> (not $ T.isPrefixOf "-- " l) && (l /= "") && (not $ T.all isSpace l)) . map lineToText
+readDictionary regex path = do
+  rawDict <- map (readRegex regex) . filter (\l -> (not $ T.isPrefixOf "-- " l) && (l /= "") && (not $ T.all isSpace l)) . map lineToText
             <$> fold (input path) Fold.list
-  
+  dict <- mapEither rawDict
+  return $ Dictionary dict
+  where
+    mapEither [] = return []
+    mapEither (Left str:xs) = print str >> mapEither xs
+    mapEither (Right x:xs) = mapEither xs >>= (\ss -> return (x:ss))
+
 main :: IO ()
 main = do
   Opts{..} <- options "Fix number formatting through directory." parser
@@ -75,7 +81,7 @@ main = do
     Nothing -> return $ Dictionary []
 
   if optsDebug
-    then print dictionary >> print mathDictionary
+    then print dictionary >> print mathDictionary >> print defaultMathModeDictionary
     else return ()
 
   files <- fold (find (suffix ".tex") optsDirectory) Fold.list

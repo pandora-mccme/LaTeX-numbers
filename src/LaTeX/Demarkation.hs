@@ -6,10 +6,10 @@ import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 
-import Data.Text.ICU (Regex, regex)
-import Data.Text.ICU.Replace (replaceAll)
-
 import Data.List.Split (splitWhen)
+import Data.String.Conversions (cs)
+
+import Text.Regex.PCRE.Heavy
 
 import LaTeX.Types
 import LaTeX.Replacement.Procedures
@@ -45,15 +45,15 @@ replaceSpecials = (foldl1 (.) spec) . T.replace "\\" "\\\\"
 
 {- $
 -- >>> readRegex False "\\raisebox{##}[##][##]"
--- Regex "(\\\\raisebox\\{(?s).*?\\}\\[(?s).*?\\]\\[(?s).*?\\])"
+-- Just (Regex "(\\\\raisebox\\{(?s).*?\\}\\[(?s).*?\\]\\[(?s).*?\\])")
 -- >>> readRegex False "\\begin{align*}##\\end{align*}"
--- Regex "(\\\\begin\\{align\\*\\}(?s).*?\\\\end\\{align\\*\\})"
+-- Just (Regex "(\\\\begin\\{align\\*\\}(?s).*?\\\\end\\{align\\*\\})")
 -- >>> readRegex True "\\\\begin\\{align\\**\\}(?s).*?\\\\end\\{align\\**\\}"
--- Regex "(\\\\begin\\{align\\**\\}(?s).*?\\\\end\\{align\\**\\})"
+-- Just (Regex "(\\\\begin\\{align\\**\\}(?s).*?\\\\end\\{align\\**\\})")
 -}
-readRegex :: Bool -> Text -> Regex
-readRegex False = regex [] . T.replace "##" "(?s).*?" . (\t -> "(" <> t <> ")") . replaceSpecials
-readRegex True = regex [] . (\t -> "(" <> t <> ")")
+readRegex :: Bool -> Text -> Either String Regex
+readRegex False = flip compileM [] . cs . T.replace "##" "(?s).*?" . (\t -> "(" <> t <> ")") . replaceSpecials
+readRegex True = flip compileM [] . cs . (\t -> "(" <> t <> ")")
 
 -- Idea: odd indices are to be in dictionary. See doctest.
 
@@ -65,7 +65,7 @@ readRegex True = regex [] . (\t -> "(" <> t <> ")")
 -}
 splitByRegex :: Dictionary -> Text -> [Text]
 splitByRegex (Dictionary dict) txt =
-  T.splitOn "#^#^#" $ foldl (.) id (map (\pattern -> replaceAll pattern "#^#^#$1#^#^#") dict) txt
+  T.splitOn "REPLACE" $ foldl (.) id (map (\pattern -> replaceAll (Replacement pattern (\(s:_) -> "REPLACE" <> s <> "REPLACE"))) dict) txt
 
 tagAsNorm :: Mode -> [Text] -> [Tagged Text]
 tagAsNorm _ [] = []

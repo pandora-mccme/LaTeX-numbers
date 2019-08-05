@@ -19,9 +19,9 @@ library
   hs-source-dirs:      src
   build-depends:       base >=4.12
                      , text >=1.2
-                     , text-regex-replace
-                     , text-icu
+                     , pcre-heavy
                      , split
+                     , string-conversions
   default-language:    Haskell2010
 
 executable LaTeX-numbers
@@ -34,7 +34,7 @@ executable LaTeX-numbers
                      , turtle
                      , system-filepath
                      , foldl
-                     , text-icu
+                     , pcre-heavy
   default-language:    Haskell2010
 
 test-suite doctests
