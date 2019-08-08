@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 module LaTeX.Demarkation where
 
 import Data.Monoid ((<>))
@@ -17,12 +18,15 @@ import LaTeX.Replacement.Procedures
 -- $setup
 -- >>> :set -XOverloadedStrings
 
+trimEmptyEnds :: Text -> Text
+trimEmptyEnds = gsub [re|\s+$|] (""::Text)
+
 trimEnds :: [Text] -> Maybe Trimmed
 trimEnds content = case a of
     [h,b,t] -> Just $ Trimmed h b t
     _ -> Nothing
   where
-    a = map (T.intercalate "\n") $ splitWhen isBeginEnd content
+    a = map (T.intercalate "\n") $ splitWhen isBeginEnd $ map trimEmptyEnds content
 
 isBeginEnd :: Text -> Bool
 isBeginEnd a =
