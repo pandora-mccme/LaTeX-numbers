@@ -56,7 +56,7 @@ replaceSpecials = (foldl1 (.) spec) . T.replace "\\" "\\\\"
 -- Just (Regex "(\\\\begin\\{align\\**\\}(?s).*?\\\\end\\{align\\**\\})")
 -}
 readRegex :: Bool -> Text -> Either String Regex
-readRegex False = flip compileM [] . cs . T.replace "##" "(?s).*?" . (\t -> "(" <> t <> ")") . replaceSpecials
+readRegex False = flip compileM [] . cs . T.replace "#$" ".*?" . T.replace "##" "(?s).*?" . (\t -> "(" <> t <> ")") . replaceSpecials
 readRegex True = flip compileM [] . cs . (\t -> "(" <> t <> ")")
 
 -- Idea: odd indices are to be in dictionary. See doctest.
