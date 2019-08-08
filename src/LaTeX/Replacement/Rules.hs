@@ -3,6 +3,7 @@
 module LaTeX.Replacement.Rules where
 
 import Data.Text (Text)
+import qualified Data.Text as T
 
 import Text.Regex.PCRE.Heavy
 
@@ -17,6 +18,11 @@ spaceRep :: ReplacementData
 spaceRep = Replacement
   [re|(\d)\\,(\d)|]
   (\(s1:s2:_) -> s1 <> s2)
+
+listRep :: ReplacementData
+listRep = Replacement
+  [re|(\d[,;]\d(?:,\d)+)|]
+  (\[d] -> T.replace "," ", " d)
 
 fractional3_3Rep :: ReplacementData
 fractional3_3Rep = Replacement

@@ -113,11 +113,12 @@ clearFormatting (Tagged txt MathMode) = Tagged (clearFormattingInner txt) MathMo
 clearFormatting a = a
 
 -- $
--- >>> clearFormattingInner "11{,}21 11{,}2 22{,}2 2{,} 2,2 d{,}d 2\\,2 a\\,2 \\, {,} , 2\\, \\,2"
--- "11,21 11,2 22,2 2{,} 2,2 d{,}d 22 a\\,2 \\, {,} , 2\\, \\,2"
+-- >>> clearFormattingInner "11{,}21 11{,}2 22{,}2 2{,} 2,2 d{,}d 2\\,2 a\\,2 \\, {,} , 2\\, \\,2 1,2 1,2,3,4"
+-- "11,21 11,2 22,2 2{,} 2,2 d{,}d 22 a\\,2 \\, {,} , 2\\, \\,2 1,2 1, 2, 3, 4"
 clearFormattingInner :: Text -> Text
 clearFormattingInner = replaceAll spaceRep
                      . replaceAll commaRep
+                     . replaceAll listRep
 
 timeMsUpdate :: Tagged Text -> Tagged Text
 timeMsUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeMsRep txt) NormalMode
