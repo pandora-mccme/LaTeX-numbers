@@ -21,7 +21,7 @@ newtype Dictionary = Dictionary [Regex] deriving (Show, Semigroup, Monoid)
 defaultCmdDictionary = Dictionary [[re|(%.*)|]]
 
 -- $$, \(\)
-defaultMathModeDictionary = Dictionary [[re|(\$.*?\$)|],[re|(\\\(.*?\\\))|]]
+defaultMathModeDictionary = Dictionary [[re|(\${1,2}(?s).+?\${1,2})|],[re|(\\\(.+?\\\))|],[re|(\\\[(?s).+?\\\])|]]
 
 -- \textbf{}
 boldDictionary = Dictionary [[re|(\\textbf\{.*?\})|]]
