@@ -29,7 +29,9 @@ trimEnds content = case a of
     [h,b,t] -> Just $ Trimmed h b t
     _ -> Nothing
   where
-    a = map (removeEmptyLines . T.intercalate "\n") $ splitWhen isBeginEnd $ map trimEmptyEnds content
+    a = map (removeEmptyLines . T.intercalate "\n")
+      $ splitWhen isBeginEnd
+      $ map trimEmptyEnds content
 
 isBeginEnd :: Text -> Bool
 isBeginEnd a =
@@ -59,10 +61,21 @@ replaceSpecials = (foldl1 (.) spec) . T.replace "\\" "\\\\"
 -- Just (Regex "(\\\\begin\\{align\\**\\}(?s).*?\\\\end\\{align\\**\\})")
 -}
 readRegex :: Bool -> Text -> Either String Regex
-readRegex False = flip compileM [] . cs . T.replace "#$" ".*?" . T.replace "##" "(?s).*?" . (\t -> "(" <> t <> ")") . replaceSpecials
-readRegex True = flip compileM [] . cs . (\t -> "(" <> t <> ")")
+readRegex False = flip compileM [] . cs
+                . T.replace "#$" ".*?"
+                . T.replace "##" "(?s).*?"
+                . (\t -> "(" <> t <> ")")
+                . replaceSpecials
+readRegex True = flip compileM [] . cs
+               . (\t -> "(" <> t <> ")")
 
 -- Idea: odd indices are to be in dictionary. See doctest.
+
+addReplaces :: Text -> Text
+addReplaces s = "REPLACE" <> s <> "REPLACE"
+
+makeRep :: Regex -> Text -> Text
+makeRep pattern = gsub pattern addReplaces
 
 {- $
 -- >>> splitByRegex defaultMathModeDictionary "text $3$ with some $dfrac{1}{2}$ formula"
@@ -71,8 +84,8 @@ readRegex True = flip compileM [] . cs . (\t -> "(" <> t <> ")")
 -- ["","$3$"," with some ","$dfrac{1}{2}$",""]
 -}
 splitByRegex :: Dictionary -> Text -> [Text]
-splitByRegex (Dictionary dict) txt =
-  T.splitOn "REPLACE" $ foldl (.) id (map (\pattern -> replaceAll (Replacement pattern (\(s:_) -> "REPLACE" <> s <> "REPLACE"))) dict) txt
+splitByRegex (Dictionary dict) txt = T.splitOn "REPLACE"
+                                   $ foldl (.) id (map makeRep dict) txt
 
 tagAsNorm :: Mode -> [Text] -> [Tagged Text]
 tagAsNorm _ [] = []

@@ -46,29 +46,48 @@ parser = Opts
 updateFileData :: Dictionary -> Dictionary -> Trimmed -> Trimmed
 updateFileData dict mathDict (Trimmed h body t) = Trimmed h new_body t
   where
-    new_body = taggedBody . italicApply . boldApply . mathApply dict mathDict $ (Tagged body NormalMode)
+    new_body = taggedBody
+             . italicApply
+             . boldApply
+             . mathApply dict mathDict
+             $ (Tagged body NormalMode)
     
 run :: Bool -> Dictionary -> Dictionary -> FilePath -> IO ()
 run debug dict mathDict path = do
-  mcontent <- trimEnds . map lineToText <$> fold (input path) Fold.list
+  mcontent <- fold (input path) Fold.list
+          >>= return . trimEnds . map lineToText
   case mcontent of
-    Just content -> outputTrimmed (Path.replaceExtension path ext) (updateFileData dict mathDict content)
+    Just content -> outputTrimmed
+                      (Path.replaceExtension path ext)
+                      (updateFileData dict mathDict content)
     Nothing -> return ()
   where
     ext = if debug
       then outputExtensionDebug
       else outputExtension
 
+exprFlag :: Text -> Bool
+exprFlag l = (not $ T.isPrefixOf "-- " l)
+         && (l /= "")
+         && (not $ T.all isSpace l)
+
+mapEitherIO :: Show a => [Either a b] -> IO [b]
+mapEitherIO [] = return []
+mapEitherIO (Left str:xs) = print str
+                         >> mapEitherIO xs
+mapEitherIO (Right x:xs) = mapEitherIO xs
+                       >>= return . (x:)
+
 readDictionary :: Bool -> FilePath -> IO Dictionary
 readDictionary regex path = do
-  rawDict <- map (readRegex regex) . filter (\l -> (not $ T.isPrefixOf "-- " l) && (l /= "") && (not $ T.all isSpace l)) . map lineToText
-            <$> fold (input path) Fold.list
-  dict <- mapEither rawDict
+  dict <- fold (input path) Fold.list
+      >>= mapEitherIO . rawDict
   return $ Dictionary dict
   where
-    mapEither [] = return []
-    mapEither (Left str:xs) = print str >> mapEither xs
-    mapEither (Right x:xs) = mapEither xs >>= (\ss -> return (x:ss))
+    rawDict raw = map (readRegex regex)
+                . filter exprFlag
+                . map lineToText
+                $ raw
 
 main :: IO ()
 main = do
@@ -81,7 +100,9 @@ main = do
     Nothing -> return $ Dictionary []
 
   if optsDebug
-    then print dictionary >> print mathDictionary >> print defaultMathModeDictionary
+    then print dictionary
+      >> print mathDictionary
+      >> print defaultMathModeDictionary
     else return ()
 
   files <- fold (find (suffix ".tex") optsDirectory) Fold.list
