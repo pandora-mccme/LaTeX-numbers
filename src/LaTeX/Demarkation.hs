@@ -21,12 +21,15 @@ import LaTeX.Replacement.Procedures
 trimEmptyEnds :: Text -> Text
 trimEmptyEnds = gsub [re|\s+$|] (""::Text)
 
+removeEmptyLines :: Text -> Text
+removeEmptyLines = gsub [re|(\n\n\n+|\n+$)|] ("\n"::Text)
+
 trimEnds :: [Text] -> Maybe Trimmed
 trimEnds content = case a of
     [h,b,t] -> Just $ Trimmed h b t
     _ -> Nothing
   where
-    a = map (T.intercalate "\n") $ splitWhen isBeginEnd $ map trimEmptyEnds content
+    a = map (removeEmptyLines . T.intercalate "\n") $ splitWhen isBeginEnd $ map trimEmptyEnds content
 
 isBeginEnd :: Text -> Bool
 isBeginEnd a =
