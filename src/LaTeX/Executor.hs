@@ -14,7 +14,8 @@ italicApply = foldMap mathItalicUpdate . markItalic
 
 -- Warning: not associative operation.
 mathApply :: Dictionary -> Dictionary -> Tagged Text -> Tagged Text
-mathApply dict mathDict = foldMap integer1NormalUpdate . foldl1 (\f g x -> f x >>= g) actions
+mathApply dict mathDict = foldMap integer1NormalUpdate
+                        . foldl1 (\f g x -> f x >>= g) actions
   where
     actions = [ markMathModeExt mathDict
               , markCommands dict
