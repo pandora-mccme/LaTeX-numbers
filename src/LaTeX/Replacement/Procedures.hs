@@ -33,19 +33,6 @@ modifier CMD = id
 modifier Italic = toItalic
 modifier Bold = toBold
 
--- FIXME: @Replacement@ functions must not permit inapplicable @Mode@ arguments.
-
-{- $
--- >>> mathSpecialReplacement NormalMode "\\(33,22\\)"
--- "$33,22$"
--- >>> mathSpecialReplacement NormalMode "$33,22$"
--- "$33,22$"
--}
-mathSpecialReplacement :: Mode -> Text -> Text
-mathSpecialReplacement mode =
-    replaceAll (modifier mode mathBracketsRep)
-  . replaceAll (modifier mode mathDollarsRep)
-
 {- $
 -- >>> commonReplacement MathMode integerRep "1 22 334 4444 55555 666666 7777777 32,34"
 -- "1 22 334 4444 55\\,555 666\\,666 7\\,777\\,777 32,34"
@@ -57,6 +44,8 @@ mathSpecialReplacement mode =
 -- "1{,}23 1{,}23 1{,}23 1{,}34555 1111{,}23 111\\,111{,}3 1111111{,}3 1\\,111\\,111{,}3 d,d 4444{,}32"
 -- >>> commonReplacement NormalMode fractionalRep "1,23 1.23 1{,}23 1.34555 1111.23 111111.3 1111111{,}3 1111111,3 d,d"
 -- "$1{,}23$ $1{,}23$ 1{,}23 $1{,}34555$ $1111{,}23$ $111\\,111{,}3$ 1111111{,}3 $1\\,111\\,111{,}3$ d,d"
+-- >>> commonReplacement NormalMode mathRep "\\(33,22\\) $33,22$"
+-- "$33,22$ $33,22$"
 -}
 commonReplacement :: Mode -> ReplacementData -> Text -> Text
 commonReplacement mode rep = replaceAll (modifier mode rep)
@@ -76,9 +65,9 @@ fractionalMathUpdate :: Tagged Text -> Tagged Text
 fractionalMathUpdate = fractionalUpdateInner MathMode
 
 mathSpecialUpdate :: Mode -> Tagged Text -> Tagged Text
-mathSpecialUpdate Italic (Tagged content Italic) = (Tagged (mathSpecialReplacement Italic content) Italic)
+mathSpecialUpdate Italic (Tagged content Italic) = (Tagged (commonReplacement Italic mathRep content) Italic)
 mathSpecialUpdate Italic (Tagged content a) = (Tagged content a)
-mathSpecialUpdate Bold (Tagged content Bold) = (Tagged (mathSpecialReplacement Bold content) Bold)
+mathSpecialUpdate Bold (Tagged content Bold) = (Tagged (commonReplacement Bold mathRep content) Bold)
 mathSpecialUpdate Bold (Tagged content a) = (Tagged content a)
 mathSpecialUpdate _ (Tagged content a) = (Tagged content a)
 

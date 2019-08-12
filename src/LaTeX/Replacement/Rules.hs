@@ -46,8 +46,5 @@ timeRep :: ReplacementData
 timeRep = Replacement
   [re|(\d{1,2}:\d{2}:\d{2}:\d{3}|\d{1,2}:\d{2}:\d{2}|\d{1,2}:\d{2})|] head
 
-mathBracketsRep :: ReplacementData
-mathBracketsRep = Replacement [re|\\\((.*?)\\\)|] head
-
-mathDollarsRep :: ReplacementData
-mathDollarsRep = Replacement [re|\$(.*?)\$|] head
+mathRep :: ReplacementData
+mathRep = Replacement [re|(?:\\\(|\$)(.*?)(?:\\\)|\$)|] head
