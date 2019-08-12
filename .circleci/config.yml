@@ -11,7 +11,7 @@ jobs:
       - run:
           command: apt install -y libpcre3-dev
       - run:
-          command: cabal update
+          command: cabal new-update
       - run:
           command: cabal new-build
       - run:
