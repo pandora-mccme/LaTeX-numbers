@@ -59,32 +59,20 @@ mathSpecialReplacement mode =
 -- "$11:21:22$"
 -- >>> commonReplacement NormalMode timeMilliRep "11:21:22:111"
 -- "$11:21:22:111$"
+-- >>> commonReplacement MathMode fractionalRep "1,23 1.23 1{,}23 1.34555 1111.23 111111.3 1111111{,}3 1111111,3 d,d 4444,32"
+-- "1{,}23 1{,}23 1{,}23 1{,}34555 1111{,}23 111\\,111{,}3 1111111{,}3 1\\,111\\,111{,}3 d,d 4444{,}32"
+-- >>> commonReplacement NormalMode fractionalRep "1,23 1.23 1{,}23 1.34555 1111.23 111111.3 1111111{,}3 1111111,3 d,d"
+-- "$1{,}23$ $1{,}23$ 1{,}23 $1{,}34555$ $1111{,}23$ $111\\,111{,}3$ 1111111{,}3 $1\\,111\\,111{,}3$ d,d"
 -}
 commonReplacement :: Mode -> ReplacementData -> Text -> Text
 commonReplacement mode rep = replaceAll (modifier mode rep)
-
-{- $
--
--- Doc: is always executed after @clearFormattingInner@
--- >>> fractionalReplacement MathMode "1,23 1.23 1{,}23 1.34555 1111.23 111111.3 1111111{,}3 1111111,3 d,d"
--- "1{,}23 1{,}23 1{,}23 1{,}34555 1111{,}23 111\\,111{,}3 1111111{,}3 1\\,111\\,111{,}3 d,d"
--- >>> fractionalReplacement NormalMode "1,23 1.23 1{,}23 1.34555 1111.23 111111.3 1111111{,}3 1111111,3 d,d"
--- "$1{,}23$ $1{,}23$ 1{,}23 $1{,}34555$ $1111{,}23$ $111\\,111{,}3$ 1111111{,}3 $1\\,111\\,111{,}3$ d,d"
--}
-fractionalReplacement :: Mode -> Text -> Text
-fractionalReplacement mode = foldr1 (.) $ map (\rep -> replaceAll (modifier mode rep)) reps
-  where
-    reps = [ fractional1_1Rep, fractional2_1Rep, fractional1_2Rep
-           , fractional1_3Rep, fractional3_1Rep, fractional2_2Rep
-           , fractional3_2Rep, fractional2_3Rep, fractional3_3Rep
-           ]
 
 -- First arg -- mode to operate in.
 fractionalUpdateInner :: Mode -> Tagged Text -> Tagged Text
 fractionalUpdateInner NormalMode (Tagged content MathMode) = (Tagged content MathMode)
 fractionalUpdateInner MathMode (Tagged content NormalMode) = (Tagged content NormalMode)
-fractionalUpdateInner NormalMode (Tagged content NormalMode) = (Tagged (fractionalReplacement NormalMode content) NormalMode)
-fractionalUpdateInner MathMode (Tagged content MathMode) = (Tagged (fractionalReplacement MathMode content) MathMode)
+fractionalUpdateInner NormalMode (Tagged content NormalMode) = (Tagged (commonReplacement NormalMode fractionalRep content) NormalMode)
+fractionalUpdateInner MathMode (Tagged content MathMode) = (Tagged (commonReplacement MathMode fractionalRep content) MathMode)
 fractionalUpdateInner _ a = a
 
 fractionalNormalUpdate :: Tagged Text -> Tagged Text
@@ -106,6 +94,12 @@ integerUpdateInner MathMode rep (Tagged content MathMode) = (Tagged (commonRepla
 integerUpdateInner NormalMode rep (Tagged content NormalMode) = (Tagged (commonReplacement NormalMode rep content) NormalMode)
 integerUpdateInner NormalMode _rep (Tagged content MathMode) = (Tagged content MathMode)
 integerUpdateInner _ _rep a = a
+
+integerNormalUpdate :: Tagged Text -> Tagged Text
+integerNormalUpdate = integerUpdateInner NormalMode integerRep
+
+integerMathUpdate :: Tagged Text -> Tagged Text
+integerMathUpdate = integerUpdateInner MathMode integerRep
 
 clearFormatting :: Tagged Text -> Tagged Text
 clearFormatting (Tagged txt NormalMode) = Tagged (clearFormattingInner txt) NormalMode
@@ -131,33 +125,6 @@ timeSUpdate a = a
 timeMUpdate :: Tagged Text -> Tagged Text
 timeMUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeMRep txt) NormalMode
 timeMUpdate a = a
-
-integer1NormalUpdate :: Tagged Text -> Tagged Text
-integer1NormalUpdate = integerUpdateInner NormalMode integer1Rep
-
-integer2NormalUpdate :: Tagged Text -> Tagged Text
-integer2NormalUpdate = integerUpdateInner NormalMode integer2Rep
-
-integer3NormalUpdate :: Tagged Text -> Tagged Text
-integer3NormalUpdate = integerUpdateInner NormalMode integer3Rep
-
-integer4NormalUpdate :: Tagged Text -> Tagged Text
-integer4NormalUpdate = integerUpdateInner NormalMode integer4Rep
-
-integer5NormalUpdate :: Tagged Text -> Tagged Text
-integer5NormalUpdate = integerUpdateInner NormalMode integer5Rep
-
-integer2MathUpdate :: Tagged Text -> Tagged Text
-integer2MathUpdate = integerUpdateInner MathMode integer2Rep
-
-integer3MathUpdate :: Tagged Text -> Tagged Text
-integer3MathUpdate = integerUpdateInner MathMode integer3Rep
-
-integer4MathUpdate :: Tagged Text -> Tagged Text
-integer4MathUpdate = integerUpdateInner MathMode integer4Rep
-
-integer5MathUpdate :: Tagged Text -> Tagged Text
-integer5MathUpdate = integerUpdateInner MathMode integer5Rep
 
 -- Assuming there is practically never $\textit{}$.
 -- replace by @mathModeDictionary regexps@. All text in math mode inside.
