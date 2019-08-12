@@ -47,18 +47,12 @@ mathSpecialReplacement mode =
   . replaceAll (modifier mode mathDollarsRep)
 
 {- $
--- >>> commonReplacement MathMode integer2Rep "1 22 334 4444 55555 666666 7777777 32,34"
--- "1 22 334 4444 55\\,555 666\\,666 7777777 32,34"
--- >>> commonReplacement MathMode integer3Rep "1 22 334 4444 55555 666666 7777777 32,34"
--- "1 22 334 4444 55555 666666 7\\,777\\,777 32,34"
--- >>> commonReplacement NormalMode integer1Rep "1 22 334 4444 55555 666666 7777777 32,34"
--- "$1$ $22$ $334$ $4444$ 55555 666666 7777777 $32$,$34$"
--- >>> commonReplacement NormalMode timeShortRep "11:21"
--- "$11:21$"
--- >>> commonReplacement NormalMode timeLongRep "11:21:22"
--- "$11:21:22$"
--- >>> commonReplacement NormalMode timeMilliRep "11:21:22:111"
--- "$11:21:22:111$"
+-- >>> commonReplacement MathMode integerRep "1 22 334 4444 55555 666666 7777777 32,34"
+-- "1 22 334 4444 55\\,555 666\\,666 7\\,777\\,777 32,34"
+-- >>> commonReplacement NormalMode integerRep "1 22 334 4444 55555 666666 7777777 32,34"
+-- "$1$ $22$ $334$ $4444$ $55\\,555$ $666\\,666$ $7\\,777\\,777$ $32$,$34$"
+-- >>> commonReplacement NormalMode timeRep "11:21 11:21:22 11:21:22:111"
+-- "$11:21$ $11:21:22$ $11:21:22:111$"
 -- >>> commonReplacement MathMode fractionalRep "1,23 1.23 1{,}23 1.34555 1111.23 111111.3 1111111{,}3 1111111,3 d,d 4444,32"
 -- "1{,}23 1{,}23 1{,}23 1{,}34555 1111{,}23 111\\,111{,}3 1111111{,}3 1\\,111\\,111{,}3 d,d 4444{,}32"
 -- >>> commonReplacement NormalMode fractionalRep "1,23 1.23 1{,}23 1.34555 1111.23 111111.3 1111111{,}3 1111111,3 d,d"
@@ -114,17 +108,9 @@ clearFormattingInner = replaceAll spaceRep
                      . replaceAll commaRep
                      . replaceAll listRep
 
-timeMsUpdate :: Tagged Text -> Tagged Text
-timeMsUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeMsRep txt) NormalMode
-timeMsUpdate a = a
-
-timeSUpdate :: Tagged Text -> Tagged Text
-timeSUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeSRep txt) NormalMode
-timeSUpdate a = a
-
-timeMUpdate :: Tagged Text -> Tagged Text
-timeMUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeMRep txt) NormalMode
-timeMUpdate a = a
+timeUpdate :: Tagged Text -> Tagged Text
+timeUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeRep txt) NormalMode
+timeUpdate a = a
 
 -- Assuming there is practically never $\textit{}$.
 -- replace by @mathModeDictionary regexps@. All text in math mode inside.

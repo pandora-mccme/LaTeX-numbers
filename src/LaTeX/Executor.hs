@@ -19,10 +19,7 @@ mathApply dict mathDict = foldMap (integerMathUpdate . integerNormalUpdate)
   where
     actions = [ markMathModeExt mathDict
               , markCommands dict
-              -- FIXME. Should be composed in another way.
               , return . clearFormatting
               , markMathMode . fractionalMathUpdate . fractionalNormalUpdate
-              , markMathMode . timeMsUpdate
-              , markMathMode . timeSUpdate
-              , markMathMode . timeMUpdate
+              , markMathMode . timeUpdate
               ]

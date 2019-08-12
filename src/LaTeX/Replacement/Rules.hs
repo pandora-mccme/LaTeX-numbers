@@ -42,20 +42,9 @@ integerRep = Replacement
   [re|(\d[\d~]*\d|\d)|]
   (\(s1:_) -> addSpaces s1)
 
-timeMRep :: ReplacementData
-timeMRep = Replacement
-  [re|(\d{1,2}):(\d{2})|]
-  (\(s1:s2:_) -> s1 <> ":" <> s2)
-
-timeMsRep :: ReplacementData
-timeMsRep = Replacement
-  [re|(\d{1,2}):(\d{2}):(\d{2}):(\d{3})|]
-  (\(s1:s2:s3:s4:_) -> s1 <> ":" <> s2 <> ":" <> s3 <> ":" <> s4)
-
-timeSRep :: ReplacementData
-timeSRep = Replacement
-  [re|(\d{1,2}):(\d{2}):(\d{2})|]
-  (\(s1:s2:s3:_) -> s1 <> ":" <> s2 <> ":" <> s3)
+timeRep :: ReplacementData
+timeRep = Replacement
+  [re|(\d{1,2}:\d{2}:\d{2}:\d{3}|\d{1,2}:\d{2}:\d{2}|\d{1,2}:\d{2})|] head
 
 mathBracketsRep :: ReplacementData
 mathBracketsRep = Replacement [re|\\\((.*?)\\\)|] head
