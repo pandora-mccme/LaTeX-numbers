@@ -31,12 +31,12 @@ fractional3_3Rep = Replacement
 
 fractional2_3Rep :: ReplacementData
 fractional2_3Rep = Replacement
-  [re|(\d{1,3})~*(\d{3})[\.,](\d{1,3})~*(\d{3})~*(\d{3})|]
+  [re|(\d{2,3})~*(\d{3})[\.,](\d{1,3})~*(\d{3})~*(\d{3})|]
   (\(s1:s2:s3:s4:s5:_) -> s1 <> "\\," <> s2 <> "{,}" <> s3 <> s4 <> s5)
 
 fractional1_3Rep :: ReplacementData
 fractional1_3Rep = Replacement
-  [re|(\d{1,3})[\.,](\d{1,3})~*(\d{3})~*(\d{3})|]
+  [re|(\d{1,4})[\.,](\d{1,3})~*(\d{3})~*(\d{3})|]
   (\(s1:s2:s3:s4:_) -> s1 <> "{,}" <> s2 <> s3 <> s4)
 
 fractional3_2Rep :: ReplacementData
