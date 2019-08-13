@@ -5,6 +5,16 @@ import Data.Char
 import Data.Text (Text)
 import qualified Data.Text as T
 
+outputExtensionDebug :: Text
+outputExtensionDebug = "test"
+
+outputExtension :: Text
+outputExtension = "tex"
+
+chooseExtension :: Bool -> Text
+chooseExtension True = outputExtensionDebug
+chooseExtension False = outputExtension
+
 addNumericSpaces :: Text -> Text
 addNumericSpaces txt = if T.length txt == 4
   then noTildes txt

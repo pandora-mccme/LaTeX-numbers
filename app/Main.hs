@@ -12,59 +12,15 @@ import qualified Filesystem.Path as Path
 import Data.Text (Text)
 
 import LaTeX.Types
+import LaTeX.Options
 import LaTeX.Utils
 import LaTeX.Load
 import LaTeX.Executor
 
-data Opts = Opts {
-    optsDictionary     :: FilePath
-  , optsMathDictionary :: Maybe FilePath
-  , optsDirectory      :: FilePath
-  , optsDebug          :: Bool
-  , optsRegex          :: Bool
-  }
-
-outputExtensionDebug :: Text
-outputExtensionDebug = "test"
-
-outputExtension :: Text
-outputExtension = "tex"
-
 outputTrimmed :: FilePath -> Trimmed -> IO ()
 outputTrimmed fp (Trimmed h b t) = writeTextFile fp $
   h <> "\n\\begin{document}\n" <> b <> "\n\\end{document}\n" <> t
-
-parser :: Parser Opts
-parser = Opts
-     <$> optPath "dict" 'd' "File with list of expressions not to change numbers in."
-     <*> optional (optPath "math" 'm' "Nontrivial commands enabling math mode as side effect for text inside.")
-     <*> argPath "path" "Directory with LaTeX to fix."
-     <*> switch  "debug" 'D' "Write changes to another file (debug mode)."
-     <*> switch  "regex" 'R' "Read dictionary entries as plain regular expressions."
-
-updateFileData :: Dictionary -> Dictionary -> Trimmed -> Trimmed
-updateFileData dict mathDict (Trimmed h body t) = Trimmed h new_body t
-  where
-    new_body = taggedBody
-             . italicApply
-             . boldApply
-             . mathApply dict mathDict
-             $ (Tagged body NormalMode)
     
-run :: Bool -> Dictionary -> Dictionary -> FilePath -> IO ()
-run debug dict mathDict path = do
-  mcontent <- fold (input path) Fold.list
-          >>= return . trimEnds . map lineToText
-  case mcontent of
-    Just content -> outputTrimmed
-                      (Path.replaceExtension path ext)
-                      (updateFileData dict mathDict content)
-    Nothing -> return ()
-  where
-    ext = if debug
-      then outputExtensionDebug
-      else outputExtension
-
 mapEitherIO :: Show a => [Either a b] -> IO [b]
 mapEitherIO [] = return []
 mapEitherIO (Left str:xs) = print str
@@ -82,6 +38,17 @@ readDictionary regex path = do
                 . filter isPattern
                 . map lineToText
                 $ raw
+
+run :: Bool -> Dictionary -> Dictionary -> FilePath -> IO ()
+run debug dict mathDict path = do
+  mcontent <- fold (input path) Fold.list
+          >>= return . trimEnds . map lineToText
+  case mcontent of
+    Just content -> outputTrimmed
+                      (Path.replaceExtension path (chooseExtension debug))
+                      (executeCorrector dict mathDict content)
+    Nothing -> return ()
+
 
 main :: IO ()
 main = do

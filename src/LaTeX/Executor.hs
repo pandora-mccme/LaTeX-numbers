@@ -23,3 +23,12 @@ mathApply dict mathDict = foldMap (integerMathUpdate . integerNormalUpdate)
               , markMathMode . fractionalMathUpdate . fractionalNormalUpdate
               , markMathMode . timeUpdate
               ]
+
+executeCorrector :: Dictionary -> Dictionary -> Trimmed -> Trimmed
+executeCorrector dict mathDict (Trimmed h body t) = Trimmed h new_body t
+  where
+    new_body = taggedBody
+             . italicApply
+             . boldApply
+             . mathApply dict mathDict
+             $ (Tagged body NormalMode)

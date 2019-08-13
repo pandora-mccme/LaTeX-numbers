@@ -13,6 +13,7 @@ cabal-version:       >=1.10
 library
   exposed-modules:     LaTeX.Demarkation
                      , LaTeX.Load
+                     , LaTeX.Options
                      , LaTeX.Executor
                      , LaTeX.Types
                      , LaTeX.Utils
@@ -21,6 +22,7 @@ library
   hs-source-dirs:      src
   build-depends:       base >=4.12
                      , text >=1.2
+                     , turtle
                      , pcre-heavy
                      , split
                      , string-conversions
