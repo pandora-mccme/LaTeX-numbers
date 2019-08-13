@@ -50,6 +50,14 @@ modifier Bold = toBold
 commonReplacement :: Mode -> ReplacementData -> Text -> Text
 commonReplacement mode rep = replaceAll (modifier mode rep)
 
+-- $
+-- >>> clearFormattingReplacement "11{,}21 11{,}2 22{,}2 2{,} 2,2 d{,}d 2\\,2 a\\,2 \\, {,} , 2\\, \\,2 1,2 1,2,3,4"
+-- "11,21 11,2 22,2 2{,} 2,2 d{,}d 22 a\\,2 \\, {,} , 2\\, \\,2 1,2 1, 2, 3, 4"
+clearFormattingReplacement :: Text -> Text
+clearFormattingReplacement = replaceAll spaceRep
+                           . replaceAll commaRep
+                           . replaceAll listRep
+
 -- First arg -- mode to operate in.
 fractionalUpdateInner :: Mode -> Tagged Text -> Tagged Text
 fractionalUpdateInner NormalMode (Tagged content MathMode) = (Tagged content MathMode)
@@ -85,17 +93,9 @@ integerMathUpdate :: Tagged Text -> Tagged Text
 integerMathUpdate = integerUpdateInner MathMode integerRep
 
 clearFormatting :: Tagged Text -> Tagged Text
-clearFormatting (Tagged txt NormalMode) = Tagged (clearFormattingInner txt) NormalMode
-clearFormatting (Tagged txt MathMode) = Tagged (clearFormattingInner txt) MathMode
+clearFormatting (Tagged txt NormalMode) = Tagged (clearFormattingReplacement txt) NormalMode
+clearFormatting (Tagged txt MathMode) = Tagged (clearFormattingReplacement txt) MathMode
 clearFormatting a = a
-
--- $
--- >>> clearFormattingInner "11{,}21 11{,}2 22{,}2 2{,} 2,2 d{,}d 2\\,2 a\\,2 \\, {,} , 2\\, \\,2 1,2 1,2,3,4"
--- "11,21 11,2 22,2 2{,} 2,2 d{,}d 22 a\\,2 \\, {,} , 2\\, \\,2 1,2 1, 2, 3, 4"
-clearFormattingInner :: Text -> Text
-clearFormattingInner = replaceAll spaceRep
-                     . replaceAll commaRep
-                     . replaceAll listRep
 
 timeUpdate :: Tagged Text -> Tagged Text
 timeUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeRep txt) NormalMode

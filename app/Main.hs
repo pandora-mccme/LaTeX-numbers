@@ -9,12 +9,11 @@ import Turtle hiding (stdout, stderr)
 import qualified Control.Foldl as Fold
 import qualified Filesystem.Path as Path
 
-import Data.Char
 import Data.Text (Text)
-import qualified Data.Text as T
 
 import LaTeX.Types
-import LaTeX.Demarkation (trimEnds, readRegex)
+import LaTeX.Utils
+import LaTeX.Load
 import LaTeX.Executor
 
 data Opts = Opts {
@@ -66,11 +65,6 @@ run debug dict mathDict path = do
       then outputExtensionDebug
       else outputExtension
 
-exprFlag :: Text -> Bool
-exprFlag l = (not $ T.isPrefixOf "-- " l)
-         && (l /= "")
-         && (not $ T.all isSpace l)
-
 mapEitherIO :: Show a => [Either a b] -> IO [b]
 mapEitherIO [] = return []
 mapEitherIO (Left str:xs) = print str
@@ -85,7 +79,7 @@ readDictionary regex path = do
   return $ Dictionary dict
   where
     rawDict raw = map (readRegex regex)
-                . filter exprFlag
+                . filter isPattern
                 . map lineToText
                 $ raw
 

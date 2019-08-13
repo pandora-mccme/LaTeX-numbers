@@ -12,8 +12,10 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     LaTeX.Demarkation
+                     , LaTeX.Load
                      , LaTeX.Executor
                      , LaTeX.Types
+                     , LaTeX.Utils
                      , LaTeX.Replacement.Rules
                      , LaTeX.Replacement.Procedures
   hs-source-dirs:      src
