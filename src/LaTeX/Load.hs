@@ -66,4 +66,3 @@ readRegex False = flip compileM [] . cs
                 . (\t -> "(" <> t <> ")")
                 . replaceSpecials
 readRegex True = flip compileM [] . cs
-               . (\t -> "(" <> t <> ")")

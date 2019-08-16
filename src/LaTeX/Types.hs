@@ -11,11 +11,17 @@ import qualified Data.Text as T
 import Text.Regex.PCRE.Heavy
 
 data ReplacementData = Replacement {
-    replacementPattern :: Regex
-  , replacementResult  :: [Text] -> Text
-  }
+  replacementPattern :: Regex
+, replacementResult  :: [Text] -> Text
+}
 
 newtype Dictionary = Dictionary [Regex] deriving (Show, Semigroup, Monoid)
+
+data Rack = Rack {
+  dictCMD        :: Dictionary
+, dictMath       :: Dictionary
+, dictTildes     :: Dictionary
+} deriving Show
 
 -- No replacements in comments.
 defaultCmdDictionary = Dictionary [[re|(%.*)|]]
@@ -33,10 +39,10 @@ boldDictionary = Dictionary [[re|(\\textbf\{.*?\})|]]
 italicDictionary = Dictionary [[re|(\\textit\{.*?\})|]]
 
 data Trimmed = Trimmed {
-    trimmedHead :: Text
-  , trimmedBody :: Text
-  , trimmedTail :: Text
-  }
+  trimmedHead :: Text
+, trimmedBody :: Text
+, trimmedTail :: Text
+}
 
 data Mode = CMD
           | Bold
@@ -45,9 +51,9 @@ data Mode = CMD
           | NormalMode deriving (Enum, Ord, Eq)
 
 data Tagged a = Tagged {
-    taggedBody :: a
-  , taggedTag  :: Mode
-  }
+  taggedBody :: a
+, taggedTag  :: Mode
+}
 
 instance Semigroup a => Semigroup (Tagged a) where
   (<>) (Tagged a fa) (Tagged b fb) = Tagged (a <> b) (fa `max` fb)
