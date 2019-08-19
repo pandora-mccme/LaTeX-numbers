@@ -10,6 +10,7 @@ import Text.Regex.PCRE.Heavy
 
 import LaTeX.Replacement.Rules
 import LaTeX.Types
+import LaTeX.Utils
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -58,6 +59,9 @@ clearFormattingReplacement = replaceAll spaceRep
                            . replaceAll commaRep
                            . replaceAll listRep
 
+tildeReplacement :: Dictionary -> Text -> Text
+tildeReplacement (Dictionary tildes) txt = replaceWithList addTilde tildes txt
+
 -- First arg -- mode to operate in.
 fractionalUpdateInner :: Mode -> Tagged Text -> Tagged Text
 fractionalUpdateInner NormalMode (Tagged content MathMode) = (Tagged content MathMode)
@@ -96,6 +100,9 @@ clearFormatting :: Tagged Text -> Tagged Text
 clearFormatting (Tagged txt NormalMode) = Tagged (clearFormattingReplacement txt) NormalMode
 clearFormatting (Tagged txt MathMode) = Tagged (clearFormattingReplacement txt) MathMode
 clearFormatting a = a
+
+tildeUpdate :: Dictionary -> Tagged Text -> Tagged Text
+tildeUpdate tildes (Tagged txt a) = Tagged (tildeReplacement tildes txt) a
 
 timeUpdate :: Tagged Text -> Tagged Text
 timeUpdate (Tagged txt NormalMode) = Tagged (commonReplacement NormalMode timeRep txt) NormalMode

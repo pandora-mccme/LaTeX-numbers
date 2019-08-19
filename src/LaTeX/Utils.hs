@@ -5,6 +5,8 @@ import Data.Char
 import Data.Text (Text)
 import qualified Data.Text as T
 
+import Text.Regex.PCRE.Heavy
+
 outputExtensionDebug :: Text
 outputExtensionDebug = "test"
 
@@ -30,3 +32,21 @@ isPattern :: Text -> Bool
 isPattern l = (not $ T.isPrefixOf "-- " l)
            && (l /= "")
            && (not $ T.all isSpace l)
+
+replaceWithList :: (Text -> Text) -> [Regex] -> Text -> Text
+replaceWithList f dict = foldl (.) id (map (makeRep f) dict)
+
+makeRep :: (Text -> Text) -> Regex -> Text -> Text
+makeRep f pattern = gsub pattern f
+
+addReplaces :: Text -> Text
+addReplaces s = "REPLACE" <> s <> "REPLACE"
+
+makeTildeLeftPattern :: Text -> Text
+makeTildeLeftPattern t = "( " <> t <> ")(?![а-яА-Я])"
+
+makeTildeRightPattern :: Text -> Text
+makeTildeRightPattern t = "(?<![а-яА-Я])(" <> t <> " )"
+
+addTilde :: Text -> Text
+addTilde = T.replace " " "~"

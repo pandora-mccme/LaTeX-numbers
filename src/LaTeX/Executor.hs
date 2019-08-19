@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module LaTeX.Executor where
 
 import Data.Text (Text)
@@ -24,11 +25,12 @@ mathApply dict mathDict = foldMap (integerMathUpdate . integerNormalUpdate)
               , markMathMode . timeUpdate
               ]
 
-executeCorrector :: Dictionary -> Dictionary -> Trimmed -> Trimmed
-executeCorrector dict mathDict (Trimmed h body t) = Trimmed h new_body t
+executeCorrector :: Rack -> Trimmed -> Trimmed
+executeCorrector Rack{..} (Trimmed h body t) = Trimmed h new_body t
   where
     new_body = taggedBody
+             . tildeUpdate dictTildes
              . italicApply
              . boldApply
-             . mathApply dict mathDict
+             . mathApply dictCMD dictMath
              $ (Tagged body NormalMode)
