@@ -24,10 +24,12 @@ data Rack = Rack {
 } deriving Show
 
 -- No replacements in comments.
-defaultCmdDictionary = Dictionary [[re|(%.*)|]]
+defaultCmdDictionary = Dictionary [[re|(\%.+)|]]
+--defaultCmdDictionary = Dictionary []
 
 -- $$, \(\)
-defaultMathModeDictionary = Dictionary [[re|(\${1,2}(?s).+?\${1,2})|]
+defaultMathModeDictionary = Dictionary [[re|(\${2}(?s).+?\${2})|]
+                                       ,[re|(?<!\$)(\$(?s).+?\$)(?!\$)|] 
                                        ,[re|(\\\(.+?\\\))|]
                                        ,[re|(\\\[(?s).+?\\\])|]
                                        ]

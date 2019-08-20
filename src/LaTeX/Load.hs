@@ -49,7 +49,7 @@ makeReplacer symbol = T.replace symbol ("\\" <> symbol)
 replaceSpecials :: Text -> Text
 replaceSpecials = (foldl1 (.) spec) . T.replace "\\" "\\\\"
 -- Full list of regex special characters
-  where spec = map makeReplacer ["*",".","?","{","}","[","]","(",")","$","^","+","|"]
+  where spec = map makeReplacer ["*",".","?","{","}","[","]","(",")","$","^","+","|","%"]
 
 {- $
 -- >>> readRegex False "\\raisebox{##}[##][##]"
