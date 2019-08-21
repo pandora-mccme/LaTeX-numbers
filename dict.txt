@@ -7,20 +7,21 @@
 
 -- Комментарием считается любая строка, в начале которой стоит "-- ". Любые другие непустые строки считаются шаблонами.
 
+-- Последовательность команд и строчка MULTILINES имеют значение. Шаблон должен идти после всех, которые могут быть в него вложены.
+
 \problem{##}
-\includegraphics[##]{##}
 \label{##}
 \cline{##}
-\begin{tabular}{##}
-\raisebox{##}[##][##]
-\multicolumn{##}{##}
-\multirow{##}{##}
-\p{##}
-\C{##}
-\L{##}
-\R{##}
 -- Чтобы на этом языке шаблонов описать все размерности, придётся написать шаблон для каждой.
 \tabcolsep=##cm
 \section*{##}
 \section{##}
+\multirow{##}{##}
+\multicolumn{##}{##}
+\raisebox{##}[##][##]
+\begin{tabular}{##}
+\begin{multicols}{##}
+\includegraphics[##]{##}
+-- Next line is present in order to be replaced for commentary element. Multiline command cannot be included in comment, but not vice versa.
+MULTILINES
 \begin{tikzpicture}##\end{tikzpicture}

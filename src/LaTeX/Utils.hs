@@ -1,11 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 module LaTeX.Utils where
 
 import Data.Char
+import Data.List
 import Data.Text (Text)
 import qualified Data.Text as T
 
 import Text.Regex.PCRE.Heavy
+
+multilines :: Text
+multilines = "MULTILINES"
 
 outputExtensionDebug :: Text
 outputExtensionDebug = "test"
@@ -34,13 +39,13 @@ isPattern l = (not $ T.isPrefixOf "-- " l)
            && (not $ T.all isSpace l)
 
 replaceWithList :: (Text -> Text) -> [Regex] -> Text -> Text
-replaceWithList f dict = foldl (.) id (map (makeRep f) dict)
+replaceWithList f dict = foldl (flip (.)) id (map (makeRep f) dict)
 
 makeRep :: (Text -> Text) -> Regex -> Text -> Text
 makeRep f pattern = gsub pattern f
 
 addReplaces :: Text -> Text
-addReplaces s = "REPLACE" <> s <> "REPLACE"
+addReplaces s = "REPLACE" <> (T.replace "REPLACE" "" s) <> "REPLACE"
 
 makeTildeLeftPattern :: Text -> Text
 makeTildeLeftPattern t = "( " <> t <> ")(?![а-яА-Я])"

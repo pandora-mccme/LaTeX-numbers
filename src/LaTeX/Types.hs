@@ -25,7 +25,6 @@ data Rack = Rack {
 
 -- No replacements in comments.
 defaultCmdDictionary = Dictionary [[re|(\%.+)|]]
---defaultCmdDictionary = Dictionary []
 
 -- $$, \(\)
 defaultMathModeDictionary = Dictionary [[re|(\${2}(?s).+?\${2})|]

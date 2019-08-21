@@ -11,6 +11,14 @@ import Text.Regex.PCRE.Heavy
 import LaTeX.Types
 import LaTeX.Utils
 
+replaceDictSpecial :: Dictionary -> Text -> Dictionary -> Dictionary
+replaceDictSpecial (Dictionary insertion) deletion (Dictionary list)
+  = Dictionary $ pre <> insertion <> safeTail del_post
+  where
+    (pre, del_post) = span (not . (deletion =~)) list
+    safeTail [] = []
+    safeTail (x:xs) = xs
+
 -- $setup
 -- >>> :set -XOverloadedStrings
 
@@ -23,7 +31,7 @@ import LaTeX.Utils
 -- ["","$3$"," with some ","$dfrac{1}{2}$",""]
 -}
 splitByRegex :: Dictionary -> Text -> [Text]
-splitByRegex (Dictionary dict) txt = T.splitOn "REPLACE"
+splitByRegex (Dictionary dict) txt = T.splitOn "RRRRRRRRRR"
                                    $ replaceWithList addReplaces dict txt
 
 tagAsNorm :: Mode -> [Text] -> [Tagged Text]
@@ -41,10 +49,10 @@ mark wantedMode dict (Tagged a NormalMode) = tagAsNorm wantedMode (splitByRegex 
 mark _ _ (Tagged a mode) = [Tagged a mode]
 
 markCommands :: Dictionary -> Tagged Text -> [Tagged Text]
-markCommands dict = mark CMD (defaultCmdDictionary <> dict)
+markCommands dict = mark CMD (replaceDictSpecial defaultCmdDictionary multilines dict)
 
 markMathModeExt :: Dictionary -> Tagged Text -> [Tagged Text]
-markMathModeExt mathDict = mark MathMode (defaultMathModeDictionary <> mathDict)
+markMathModeExt mathDict = mark MathMode (replaceDictSpecial defaultMathModeDictionary multilines mathDict)
 
 markMathMode :: Tagged Text -> [Tagged Text]
 markMathMode = mark MathMode defaultMathModeDictionary
