@@ -31,7 +31,7 @@ replaceDictSpecial (Dictionary insertion) deletion (Dictionary list)
 -- ["","$3$"," with some ","$dfrac{1}{2}$",""]
 -}
 splitByRegex :: Dictionary -> Text -> [Text]
-splitByRegex (Dictionary dict) txt = T.splitOn "RRRRRRRRRR"
+splitByRegex (Dictionary dict) txt = T.splitOn "REPLACE"
                                    $ replaceWithList addReplaces dict txt
 
 tagAsNorm :: Mode -> [Text] -> [Tagged Text]
