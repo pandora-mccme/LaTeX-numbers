@@ -24,12 +24,11 @@ replaceDictSpecial (Dictionary insertion) deletion (Dictionary list)
 
 -- Idea: odd indices are to be in dictionary. See doctest.
 
-{- $
+-- |
 -- >>> splitByRegex defaultMathModeDictionary "text $3$ with some $dfrac{1}{2}$ formula"
 -- ["text ","$3$"," with some ","$dfrac{1}{2}$"," formula"]
 -- >>> splitByRegex defaultMathModeDictionary "$3$ with some $dfrac{1}{2}$"
 -- ["","$3$"," with some ","$dfrac{1}{2}$",""]
--}
 splitByRegex :: Dictionary -> Text -> [Text]
 splitByRegex (Dictionary dict) txt = T.splitOn "REPLACE"
                                    $ replaceWithList addReplaces dict txt

@@ -34,7 +34,7 @@ modifier CMD = id
 modifier Italic = toItalic
 modifier Bold = toBold
 
-{- $
+-- |
 -- >>> commonReplacement MathMode integerRep "1 22 334 4444 55555 666666 7777777 32,34"
 -- "1 22 334 4444 55\\,555 666\\,666 7\\,777\\,777 32,34"
 -- >>> commonReplacement NormalMode integerRep "1 22 334 4444 55555 666666 7777777 32,34"
@@ -47,11 +47,10 @@ modifier Bold = toBold
 -- "$1{,}23$ $1{,}23$ 1{,}23 $1{,}34555$ $1111{,}23$ $111\\,111{,}3$ 1111111{,}3 $1\\,111\\,111{,}3$ d,d"
 -- >>> commonReplacement NormalMode mathRep "\\(33,22\\) $33,22$"
 -- "$33,22$ $33,22$"
--}
 commonReplacement :: Mode -> ReplacementData -> Text -> Text
 commonReplacement mode rep = replaceAll (modifier mode rep)
 
--- $
+-- |
 -- >>> clearFormattingReplacement "11{,}21 11{,}2 22{,}2 2{,} 2,2 d{,}d 2\\,2 a\\,2 \\, {,} , 2\\, \\,2 1,2 1,2,3,4"
 -- "11,21 11,2 22,2 2{,} 2,2 d{,}d 22 a\\,2 \\, {,} , 2\\, \\,2 1,2 1, 2, 3, 4"
 clearFormattingReplacement :: Text -> Text
