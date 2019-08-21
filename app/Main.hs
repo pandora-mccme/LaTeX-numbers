@@ -57,7 +57,11 @@ readRack Opts{..} = do
     Just trdp -> readDictionary makeTildeRightPattern True trdp
     Nothing -> return $ Dictionary []
 
-  let dictTildes = tildeLeftDictionary <> tildeRightDictionary
+  tildeMidDictionary <- case optsTildeMidDictionary of
+    Just tmdp -> readDictionary makeTildeMidPattern True tmdp
+    Nothing -> return $ Dictionary []
+
+  let dictTildes = tildeLeftDictionary <> tildeRightDictionary <> tildeMidDictionary
   return Rack{..}
 
 

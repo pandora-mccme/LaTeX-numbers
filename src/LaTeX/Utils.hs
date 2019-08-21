@@ -54,5 +54,9 @@ makeTildeLeftPattern t = "( " <> t <> ")(?![абвгдеёжзийклмнопр
 makeTildeRightPattern :: Text -> Text
 makeTildeRightPattern t = "(?<![абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ])(" <> t <> " )"
 
+makeTildeMidPattern :: Text -> Text
+makeTildeMidPattern t = "(?<![абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ])("
+                     <> t <> ")(?![абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ])"
+
 addTilde :: Text -> Text
 addTilde = T.replace " " "~"
