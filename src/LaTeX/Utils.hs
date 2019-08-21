@@ -48,10 +48,11 @@ addReplaces :: Text -> Text
 addReplaces s = "REPLACE" <> (T.replace "REPLACE" "" s) <> "REPLACE"
 
 makeTildeLeftPattern :: Text -> Text
-makeTildeLeftPattern t = "( " <> t <> ")(?![а-яА-Я])"
+-- FIXME: а-яА-Я does not match all russian letters.
+makeTildeLeftPattern t = "( " <> t <> ")(?![абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ])"
 
 makeTildeRightPattern :: Text -> Text
-makeTildeRightPattern t = "(?<![а-яА-Я])(" <> t <> " )"
+makeTildeRightPattern t = "(?<![абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ])(" <> t <> " )"
 
 addTilde :: Text -> Text
 addTilde = T.replace " " "~"
