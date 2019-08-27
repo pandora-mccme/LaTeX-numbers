@@ -24,7 +24,7 @@ data Rack = Rack {
 } deriving Show
 
 -- No replacements in comments.
-defaultCmdDictionary = Dictionary [[re|(\%.+)|]]
+defaultCmdDictionary = Dictionary [[re|((?<!\)\%.+)|]]
 
 -- $$, \(\)
 defaultMathModeDictionary = Dictionary [[re|(\${2}(?s).+?\${2})|]
