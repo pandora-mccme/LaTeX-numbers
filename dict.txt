@@ -15,6 +15,8 @@
 \cline{##}
 \footnote{##}
 \pgfplotsset{##}
+\begin{enumerate}[##]
+\begin{itemize}[##]
 \pgfkeys{##}
 -- Чтобы на этом языке шаблонов описать все размерности, придётся написать шаблон для каждой.
 \tabcolsep=##cm
