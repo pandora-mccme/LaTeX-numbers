@@ -70,9 +70,13 @@ run debug rack path = do
   mcontent <- fold (input path) Fold.list
           >>= return . trimEnds . map lineToText
   case mcontent of
-    Just content -> outputTrimmed
-                      (Path.replaceExtension path (chooseExtension debug))
-                      (executeCorrector rack content)
+    Just content -> do
+      let fixedContent = content {
+          trimmedBody = replaceProblemTags 1 (trimmedBody content) (encodeString (filename path))
+        }
+      outputTrimmed
+        (Path.replaceExtension path (chooseExtension debug))
+        (executeCorrector rack fixedContent)
     Nothing -> return ()
 
 pprint :: Dictionary -> IO ()

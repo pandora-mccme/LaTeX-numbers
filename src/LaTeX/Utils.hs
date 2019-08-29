@@ -9,6 +9,9 @@ import qualified Data.Text as T
 
 import Text.Regex.PCRE.Heavy
 
+-- $setup
+-- >>> :set -XOverloadedStrings
+
 multilines :: Text
 multilines = "MULTILINES"
 
@@ -22,6 +25,11 @@ chooseExtension :: Bool -> Text
 chooseExtension True = outputExtensionDebug
 chooseExtension False = outputExtension
 
+-- |
+-- >>> addNumericSpaces "3333"
+-- "3333"
+-- >>> addNumericSpaces "3333333"
+-- "3\\,333\\,333"
 addNumericSpaces :: Text -> Text
 addNumericSpaces txt = if T.length txt == 4
   then noTildes txt
@@ -60,3 +68,15 @@ makeTildeMidPattern t = "(?<![абвгдеёжзийклмнопрстуфхцч
 
 addTilde :: Text -> Text
 addTilde = T.replace " " "~"
+
+-- |
+-- >>> replaceProblemTags 1 "\\problem{s}    \\problem{d}" "pure.tex"
+-- "\\problem{pure_1}    \\problem{pure_2}"
+replaceProblemTags :: Int -> Text -> String -> Text
+replaceProblemTags num txt filename = if "\\problem{" `T.isInfixOf` txt
+  then start <> "\\problem{" <> problemName <> "_" <> T.pack (show num) <> replaceProblemTags (num+1) next filename
+  else txt
+  where
+    (start, prNext) = T.breakOn "\\problem{" txt
+    (_pr,next) = T.breakOn "}" prNext
+    problemName = (flip (!!) 0) . T.splitOn "(" . fst . T.breakOn "." . T.pack $ filename
