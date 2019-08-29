@@ -27,8 +27,8 @@ data Rack = Rack {
 defaultCmdDictionary = Dictionary [[re|((?<!\\)\%.+)|]]
 
 -- $$, \(\)
-defaultMathModeDictionary = Dictionary [[re|(\${2}(?s).+?\${2})|]
-                                       ,[re|(?<!\$\\)(\$(?s)[^\$]*[^\$\\]?\$)(?!\$)|] 
+defaultMathModeDictionary = Dictionary [[re|(?<!\\)(\${2}(?s).*?[^\\]\${2})|]
+                                       ,[re|(?<![\$\\])(\$(?s)[^\$]*?[^\\]\$)(?!\$)|] 
                                        ,[re|(\\\(.+?\\\))|]
                                        ,[re|(\\\[(?s).+?\\\])|]
                                        ]
