@@ -71,7 +71,7 @@ addTilde = T.replace " " "~"
 
 -- |
 -- >>> replaceProblemTags 1 "\\problem{s}    \\problem{d}" "pure.tex"
--- "\\problem{pure_1}    \\problem{pure_2}"
+-- "\n\\problem{pure_1}    \n\\problem{pure_2}"
 replaceProblemTags :: Int -> Text -> String -> Text
 replaceProblemTags num txt filename = if "\\problem{" `T.isInfixOf` txt
   then start <> "\n\\problem{" <> problemName <> "_" <> T.pack (show num) <> replaceProblemTags (num+1) next filename
