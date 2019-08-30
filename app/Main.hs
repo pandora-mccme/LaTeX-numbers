@@ -69,13 +69,15 @@ run :: Bool -> Rack -> FilePath -> IO ()
 run debug rack path = do
   mcontent <- fold (input path) Fold.list
           >>= return . trimEnds . map lineToText
+  let fp = if debug
+        then Path.replaceExtension path outputExtensionDebug
+        else path
   case mcontent of
     Just content -> do
       let fixedContent = content {
           trimmedBody = replaceProblemTags 1 (trimmedBody content) (encodeString (filename path))
         }
-      outputTrimmed
-        (Path.replaceExtension path (chooseExtension debug))
+      outputTrimmed fp
         (executeCorrector rack fixedContent)
     Nothing -> return ()
 

@@ -18,13 +18,6 @@ multilines = "MULTILINES"
 outputExtensionDebug :: Text
 outputExtensionDebug = "test"
 
-outputExtension :: Text
-outputExtension = "tex"
-
-chooseExtension :: Bool -> Text
-chooseExtension True = outputExtensionDebug
-chooseExtension False = outputExtension
-
 -- |
 -- >>> addNumericSpaces "3333"
 -- "3333"
