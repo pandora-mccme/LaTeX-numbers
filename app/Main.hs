@@ -98,5 +98,8 @@ main = do
     then prettyPrint rack
     else return ()
 
-  files <- fold (find (suffix ".tex") optsDirectory) Fold.list
-  mapM_ (run optsDebug rack) files
+  if optsSingleFile
+    then run optsDebug rack optsDirectory
+    else do
+      files <- fold (find (suffix ".tex") optsDirectory) Fold.list
+      mapM_ (run optsDebug rack) files
