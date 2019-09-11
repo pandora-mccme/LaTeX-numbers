@@ -4,6 +4,7 @@ module LaTeX.Replacement.Procedures where
 
 import Data.Monoid ((<>))
 
+import qualified Data.Text as T
 import Data.Text (Text)
 
 import Text.Regex.PCRE.Heavy
@@ -58,6 +59,23 @@ clearFormattingReplacement = replaceAll spaceRep
                            . replaceAll commaRep
                            . replaceAll listRep
 
+clearCyrillicReplacement :: Text -> Text
+clearCyrillicReplacement = foldl (flip (.)) id $
+  [ T.replace "с" "c"
+  , T.replace "С" "C"
+  , T.replace "В" "B"
+  , T.replace "а" "a"
+  , T.replace "А" "A"
+  , T.replace "Н" "H"
+  , T.replace "о" "o"
+  , T.replace "О" "O"
+  , T.replace "р" "p"
+  , T.replace "Р" "P"
+  , T.replace "е" "e"
+  , T.replace "Е" "E"
+  , T.replace "Т" "T"
+  ]
+
 tildeReplacement :: Dictionary -> Text -> Text
 tildeReplacement (Dictionary tildes) txt = replaceWithList addTilde tildes txt
 
@@ -94,6 +112,10 @@ integerNormalUpdate = integerUpdateInner NormalMode integerRep
 
 integerMathUpdate :: Tagged Text -> Tagged Text
 integerMathUpdate = integerUpdateInner MathMode integerRep
+
+clearCyrillic :: Tagged Text -> Tagged Text
+clearCyrillic (Tagged txt MathMode) = Tagged (clearCyrillicReplacement txt) MathMode
+clearCyrillic a = a
 
 clearFormatting :: Tagged Text -> Tagged Text
 clearFormatting (Tagged txt NormalMode) = Tagged (clearFormattingReplacement txt) NormalMode

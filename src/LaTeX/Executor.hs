@@ -20,7 +20,7 @@ mathApply dict mathDict = foldl1 (<>)
   where
     actions = [ markCommands dict
               , markMathModeExt mathDict
-              , markMathMode . fractionalMathUpdate . fractionalNormalUpdate . clearFormatting
+              , markMathMode . fractionalMathUpdate . fractionalNormalUpdate . clearCyrillic . clearFormatting
               , markMathMode . timeUpdate
               , return . integerMathUpdate . integerNormalUpdate
               ]
