@@ -9,6 +9,9 @@
 
 -- Последовательность команд и строчка MULTILINES имеют значение. Шаблон должен идти после всех, которые могут быть в него вложены.
 
+matching,##,{##}
+cols:{##}
+rows:{##}
 \href{##}
 \linethickness{##}
 \put(##)
@@ -32,7 +35,7 @@
 \multirow{##}{##}
 \multicolumn{##}{##}
 \raisebox{##}[##][##]
-\begin{tabular}{##}
+\begin{tabular}{|##|}
 \begin{multicols}{##}
 \includegraphics[##]{##}
 -- Next line is present in order to be replaced for commentary element. Multiline command cannot be included in comment, but not vice versa.

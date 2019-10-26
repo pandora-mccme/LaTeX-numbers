@@ -41,7 +41,7 @@ modifier Bold = toBold
 -- >>> commonReplacement NormalMode integerRep "1 22 334 4444 55555 666666 7777777 32,34"
 -- "$1$ $22$ $334$ $4444$ $55\\,555$ $666\\,666$ $7\\,777\\,777$ $32$,$34$"
 -- >>> commonReplacement NormalMode timeRep "11:21 11:21:22 11:21:22:111"
--- "$11:21$ $11:21:22$ $11:21:22:111$"
+-- "$11{:}21$ $11{:}21{:}22$ $11{:}21{:}22{:}111$"
 -- >>> commonReplacement MathMode fractionalRep "1,23 1.23 1{,}23 1.34555 1111.23 111111.3 1111111{,}3 1111111,3 d,d 4444,32"
 -- "1{,}23 1{,}23 1{,}23 1{,}34555 1111{,}23 111\\,111{,}3 1111111{,}3 1\\,111\\,111{,}3 d,d 4444{,}32"
 -- >>> commonReplacement NormalMode fractionalRep "1,23 1.23 1{,}23 1.34555 1111.23 111111.3 1111111{,}3 1111111,3 d,d"
@@ -57,6 +57,7 @@ commonReplacement mode rep = replaceAll (modifier mode rep)
 clearFormattingReplacement :: Text -> Text
 clearFormattingReplacement = replaceAll spaceRep
                            . replaceAll commaRep
+                           . replaceAll colonRep
                            . replaceAll listRep
 
 clearCyrillicReplacement :: Text -> Text
