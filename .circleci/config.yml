@@ -3,7 +3,7 @@ version: 2
 jobs:
   suite:
     docker:
-      - image: haskell
+      - image: haskell:8.6.5
     steps:
       - checkout
       - run:
