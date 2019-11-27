@@ -36,7 +36,7 @@ fractionalRep = Replacement
 
 integerRep :: ReplacementData
 integerRep = Replacement
-  [re|(\d[\d~]*\d|\d)|]
+  [re|(\d[\d~]*\d(\\%)?|\d(\\%)?)|]
   (\(s1:_) -> addNumericSpaces s1)
 
 timeRep :: ReplacementData
