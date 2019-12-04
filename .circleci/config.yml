@@ -27,11 +27,11 @@ jobs:
       enabled: true
     steps:
       - run:
-          command: scp /LaTeX-numbers viviag@$MCCME_IP
+          command: scp /LaTeX-numbers $USER@$HOST
       - run:
-          command: scp {dict,math_dict,left_tildes,right_tildes,mid_tildes}.txt viviag@$MCCME_IP
+          command: scp {dict,math_dict,left_tildes,right_tildes,mid_tildes}.txt $USER@$HOST
       - run:
-          command: ssh -t viviag@MCCME_IP "chmod 700 LaTeX-numbers"
+          command: ssh -t $USER@$HOST "chmod 700 LaTeX-numbers"
       - run:
           command: a=$(+%Y-%m-%d)
       - run:
