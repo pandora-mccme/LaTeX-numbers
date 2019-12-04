@@ -22,9 +22,29 @@ jobs:
           command: cabal new-install exe:LaTeX-numbers
       - store_artifacts:
           path: /LaTeX-numbers
+  deploy:
+    machine:
+      enabled: true
+    steps:
+      - run:
+          command: scp /LaTeX-numbers $USER@$HOST
+      - run:
+          command: scp {dict,math_dict,left_tildes,right_tildes,mid_tildes}.txt $USER@$HOST
+      - run:
+          command: ssh -t $USER@$HOST "chmod 700 LaTeX-numbers"
+      - run:
+          command: a=$(+%Y-%m-%d)
+      - run:
+          command: echo "LaTeX-numbers version at $CIRCLE_BUILD_NUM deployed" >> Yandex.Disk/Заливка/logs/$a.log
 
 workflows:
   version: 2
-  build_and_test:
+  build-and-deploy:
     jobs:
       - suite
+      - deploy:
+          requires:
+            - suite
+          filters:
+            branches:
+              only: master
