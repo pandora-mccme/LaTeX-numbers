@@ -22,7 +22,7 @@ jobs:
           command: cabal new-install exe:LaTeX-numbers
       - store_artifacts:
           path: /LaTeX-numbers
-      - persist_to_workspace
+      - persist_to_workspace:
           root: /
           paths:
             - LaTeX-numbers
