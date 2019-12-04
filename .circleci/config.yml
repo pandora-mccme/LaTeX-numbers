@@ -41,7 +41,7 @@ jobs:
       - run:
           command: a=$(+%Y-%m-%d)
       - run:
-          command: echo "LaTeX-numbers version at $CIRCLE_BUILD_NUM deployed" >> Yandex.Disk/Заливка/logs/$a.log
+          command: echo "LaTeX-numbers version at $CIRCLE_BUILD_NUM deployed" >> Yandex.Disk/Заливка_вся/logs/$a.log
 
 workflows:
   version: 2
