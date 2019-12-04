@@ -23,7 +23,7 @@ jobs:
       - store_artifacts:
           path: /LaTeX-numbers
       - persist_to_workspace:
-          root: dist-newstyle/build/x86_64-linux/ghc-8.6.5/LaTeX-numbers-0.1.0.0/x/LaTeX-numbers/build/LaTeX-numbers/LaTeX-numbers
+          root: dist-newstyle/build/x86_64-linux/ghc-8.6.5/LaTeX-numbers-0.1.0.0/x/LaTeX-numbers/build/LaTeX-numbers
           paths:
             - LaTeX-numbers
   deploy:
@@ -31,9 +31,9 @@ jobs:
       enabled: true
     steps:
       - attach_workspace:
-          at: dist-newstyle/build/x86_64-linux/ghc-8.6.5/LaTeX-numbers-0.1.0.0/x/LaTeX-numbers/build/LaTeX-numbers/LaTeX-numbers/LaTeX-numbers
+          at: dist-newstyle/build/x86_64-linux/ghc-8.6.5/LaTeX-numbers-0.1.0.0/x/LaTeX-numbers/build/LaTeX-numbers
       - run:
-          command: scp dist-newstyle/build/x86_64-linux/ghc-8.6.5/LaTeX-numbers-0.1.0.0/x/LaTeX-numbers/build/LaTeX-numbers/LaTeX-numbers/LaTeX-numbers $USER@$HOST:~
+          command: scp dist-newstyle/build/x86_64-linux/ghc-8.6.5/LaTeX-numbers-0.1.0.0/x/LaTeX-numbers/build/LaTeX-numbers/LaTeX-numbers $USER@$HOST:~
       - run:
           command: scp {dict,math_dict,left_tildes,right_tildes,mid_tildes}.txt $USER@$HOST:~
       - run:
