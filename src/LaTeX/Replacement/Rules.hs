@@ -36,7 +36,7 @@ fractionalRep = Replacement
 
 integerRep :: ReplacementData
 integerRep = Replacement
-  [re|(\d[\d~]*\d|\d)(\\%)?|] func
+  [re|(?<!\{,\})(\d[\d~]*\d|\d)(\\%)?|] func
     where
       func (s1:s2:_) = addNumericSpaces s1 <> s2
       func (s1:_) = addNumericSpaces s1
