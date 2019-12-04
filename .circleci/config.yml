@@ -23,7 +23,7 @@ jobs:
       - store_artifacts:
           path: /LaTeX-numbers
       - persist_to_workspace:
-          root: /
+          root: /.local/bin
           paths:
             - LaTeX-numbers
   deploy:
@@ -31,9 +31,9 @@ jobs:
       enabled: true
     steps:
       - attach_workspace:
-          at: /
+          at: /.local/bin
       - run:
-          command: scp /LaTeX-numbers $USER@$HOST
+          command: scp /.local/bin/LaTeX-numbers $USER@$HOST
       - run:
           command: scp {dict,math_dict,left_tildes,right_tildes,mid_tildes}.txt $USER@$HOST
       - run:
