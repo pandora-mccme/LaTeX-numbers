@@ -35,7 +35,7 @@ jobs:
       - run:
           command: scp dist-newstyle/build/x86_64-linux/ghc-8.6.5/LaTeX-numbers-0.1.0.0/x/LaTeX-numbers/build/LaTeX-numbers/LaTeX-numbers $USER@$HOST:~
       - run:
-          command: ssh -t $USER@$HOST "chmod 700 LaTeX-numbers"
+          command: ssh -t $USER@$HOST "chmod +x LaTeX-numbers"
       - run:
           command: ssh -t $USER@$HOST "./update_notify.sh $CIRCLE_BUILD_NUM \"LaTeX-numbers\""
 
