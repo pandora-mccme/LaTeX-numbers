@@ -30,7 +30,7 @@ jobs:
     machine:
       enabled: true
     steps:
-     - attach_workspace:
+      - attach_workspace:
           at: /LaTeX-numbers
       - run:
           command: scp /LaTeX-numbers $USER@$HOST
