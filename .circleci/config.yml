@@ -39,9 +39,7 @@ jobs:
       - run:
           command: ssh -t $USER@$HOST "chmod 700 LaTeX-numbers"
       - run:
-          command: a=$(date '+%Y-%m-%d')
-      - run:
-          command: echo "LaTeX-numbers version at $CIRCLE_BUILD_NUM deployed" >> Yandex.Disk/Заливка_вся/logs/$a.log
+          command: ssh -t $USER@$HOST "echo \"LaTeX-numbers version at build $CIRCLE_BUILD_NUM deployed\" >> Yandex.Disk/Заливка_вся/logs/$(date '+%Y-%m-%d_%H').log"
 
 workflows:
   version: 2
