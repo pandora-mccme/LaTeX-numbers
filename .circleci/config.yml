@@ -31,9 +31,9 @@ jobs:
       enabled: true
     steps:
       - attach_workspace:
-          at: dist-newstyle/build/x86_64-linux/ghc-8.6.5/LaTeX-numbers-0.1.0.0/x/LaTeX-numbers/build/LaTeX-numbers
+          at: bin
       - run:
-          command: scp dist-newstyle/build/x86_64-linux/ghc-8.6.5/LaTeX-numbers-0.1.0.0/x/LaTeX-numbers/build/LaTeX-numbers/LaTeX-numbers $USER@$HOST:~
+          command: scp bin/LaTeX-numbers $USER@$HOST:~
       - run:
           command: ssh -t $USER@$HOST "chmod +x LaTeX-numbers"
       - run:

@@ -1,7 +1,9 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 module LaTeX.Executor where
 
 import Data.Text (Text)
+import qualified Data.Text as T
 
 import LaTeX.Types
 import LaTeX.Demarkation
@@ -13,6 +15,9 @@ boldApply = foldMap mathBoldUpdate . markBold
 italicApply :: Tagged Text -> Tagged Text
 italicApply = foldMap mathItalicUpdate . markItalic
 
+includeUnaryMinus :: Tagged Text -> Tagged Text
+includeUnaryMinus (Tagged txt mode) = Tagged (T.replace "-$" "$-" txt) mode
+
 -- Warning: not associative operation.
 mathApply :: Dictionary -> Dictionary -> Tagged Text -> Tagged Text
 mathApply dict mathDict = foldl1 (<>)
@@ -22,7 +27,7 @@ mathApply dict mathDict = foldl1 (<>)
               , markMathModeExt mathDict
               , markMathMode . fractionalMathUpdate . fractionalNormalUpdate . clearCyrillic . clearFormatting
               , markMathMode . timeUpdate
-              , return . integerMathUpdate . integerNormalUpdate
+              , return . includeUnaryMinus . integerMathUpdate . integerNormalUpdate
               ]
 
 executeCorrector :: Rack -> Trimmed -> Trimmed
