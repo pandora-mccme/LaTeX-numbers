@@ -55,7 +55,7 @@ replaceSpecials = (foldl1 (.) spec) . T.replace "\\" "\\\\"
 -- >>> readRegex False "\\raisebox{##}[##][##]"
 -- Right (Regex ... "(\\\\raisebox\\{(?s).*?\\}\\[(?s).*?\\]\\[(?s).*?\\])")
 -- >>> readRegex False "\\raisebox{##}[##][#$]"
--- Right (Regex ... "(\\\\raisebox\\{(?s).*?\\}\\[(?s).*?\\]\\[.*?\\])")
+-- Right (Regex ... "(\\\\raisebox\\{(?s).*?\\}\\[(?s).*?\\]\\[.*\\])")
 -- >>> readRegex False "\\begin{align*}##\\end{align*}"
 -- Right (Regex ... "(\\\\begin\\{align\\*\\}(?s).*?\\\\end\\{align\\*\\})")
 -- >>> readRegex True "\\\\begin\\{align\\**\\}(?s).*?\\\\end\\{align\\**\\}"
@@ -63,7 +63,7 @@ replaceSpecials = (foldl1 (.) spec) . T.replace "\\" "\\\\"
 readRegex :: Bool -> Text -> Either String Regex
 readRegex False = flip compileM [] . cs
                 . T.replace "$" "\\$"
-                . T.replace "#$" ".*?"
+                . T.replace "#$" ".*"
                 . T.replace "##" "(?s).*?"
                 . (\t -> "(" <> t <> ")")
                 . replaceSpecials
