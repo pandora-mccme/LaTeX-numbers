@@ -49,17 +49,20 @@ makeReplacer symbol = T.replace symbol ("\\" <> symbol)
 replaceSpecials :: Text -> Text
 replaceSpecials = (foldl1 (.) spec) . T.replace "\\" "\\\\"
 -- Full list of regex special characters
-  where spec = map makeReplacer ["*",".","?","{","}","[","]","(",")","$","^","+","|","%"]
+  where spec = map makeReplacer ["*",".","?","{","}","[","]","(",")","^","+","|","%"]
 
 -- |
 -- >>> readRegex False "\\raisebox{##}[##][##]"
 -- Right (Regex ... "(\\\\raisebox\\{(?s).*?\\}\\[(?s).*?\\]\\[(?s).*?\\])")
+-- >>> readRegex False "\\raisebox{##}[##][#$]"
+-- Right (Regex ... "(\\\\raisebox\\{(?s).*?\\}\\[(?s).*?\\]\\[.*?\\])")
 -- >>> readRegex False "\\begin{align*}##\\end{align*}"
 -- Right (Regex ... "(\\\\begin\\{align\\*\\}(?s).*?\\\\end\\{align\\*\\})")
 -- >>> readRegex True "\\\\begin\\{align\\**\\}(?s).*?\\\\end\\{align\\**\\}"
 -- Right (Regex ... "\\\\begin\\{align\\**\\}(?s).*?\\\\end\\{align\\**\\}")
 readRegex :: Bool -> Text -> Either String Regex
 readRegex False = flip compileM [] . cs
+                . T.replace "$" "\\$"
                 . T.replace "#$" ".*?"
                 . T.replace "##" "(?s).*?"
                 . (\t -> "(" <> t <> ")")
