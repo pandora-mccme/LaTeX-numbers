@@ -8,6 +8,10 @@ import qualified Data.Text as T
 import LaTeX.Types
 import LaTeX.Demarkation
 import LaTeX.Replacement.Procedures
+import LaTeX.Replacement.Rules (unaryMinus, multiSpaces, multiSpacesTilde)
+
+-- $setup
+-- >>> :set -XOverloadedStrings
 
 boldApply :: Tagged Text -> Tagged Text
 boldApply = foldMap mathBoldUpdate . markBold
@@ -16,7 +20,27 @@ italicApply :: Tagged Text -> Tagged Text
 italicApply = foldMap mathItalicUpdate . markItalic
 
 includeUnaryMinus :: Tagged Text -> Tagged Text
-includeUnaryMinus (Tagged txt mode) = Tagged (T.replace "-$" "$-" txt) mode
+includeUnaryMinus (Tagged txt mode) = Tagged (replaceAll unaryMinus txt) mode
+
+replaceMultiSpaces :: Tagged Text -> Tagged Text
+replaceMultiSpaces (Tagged txt mode) = Tagged (replaceAll multiSpaces txt) mode
+
+replaceMultiSpacesTilde :: Tagged Text -> Tagged Text
+replaceMultiSpacesTilde (Tagged txt mode) = Tagged (replaceAll multiSpacesTilde txt) mode
+
+-- |
+-- >>> replaceAll unaryMinus "-$12.3$"
+-- "$-12.3$"
+-- >>> replaceAll unaryMinus "$-$"
+-- "$-$"
+-- >>> replaceAll multiSpaces "text   with  multiple spaces"
+-- "text with multiple spaces"
+-- >>> replaceAll multiSpacesTilde "text ~with~ multiple spaces"
+-- "text~with~multiple spaces"
+commonProcedures :: Tagged Text -> Tagged Text
+commonProcedures = replaceMultiSpaces
+                 . replaceMultiSpacesTilde
+                 . includeUnaryMinus
 
 -- Warning: not associative operation.
 mathApply :: Dictionary -> Dictionary -> Tagged Text -> Tagged Text
@@ -27,7 +51,7 @@ mathApply dict mathDict = foldl1 (<>)
               , markMathModeExt mathDict
               , markMathMode . fractionalMathUpdate . fractionalNormalUpdate . clearCyrillic . clearFormatting
               , markMathMode . timeUpdate
-              , return . includeUnaryMinus . integerMathUpdate . integerNormalUpdate
+              , return . commonProcedures . integerMathUpdate . integerNormalUpdate
               ]
 
 executeCorrector :: Rack -> Trimmed -> Trimmed

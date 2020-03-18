@@ -9,6 +9,17 @@ import Text.Regex.PCRE.Heavy
 import LaTeX.Types
 import LaTeX.Utils
 
+unaryMinus :: ReplacementData
+unaryMinus = Replacement
+  [re|-\$(\d)|]
+  (\(dig:_) -> "$-" <> dig)
+
+multiSpaces :: ReplacementData
+multiSpaces = Replacement [re|(\s)\s*|] head
+
+multiSpacesTilde :: ReplacementData
+multiSpacesTilde = Replacement [re|\s+~|~\s+|] (const "~")
+
 commaRep :: ReplacementData
 commaRep = Replacement
   [re|(\d)\{,\}(\d)|]
