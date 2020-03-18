@@ -37,7 +37,7 @@ jobs:
       - run:
           command: ssh -t $USER@$HOST "chmod +x LaTeX-numbers"
       - run:
-          command: ssh -t $USER@$HOST "./update_notify.sh $CIRCLE_BUILD_NUM \"LaTeX-numbers\""
+          command: ssh -t $USER@$HOST "./update_notify.sh $CIRCLE_COMPARE_URL $CIRCLE_BUILD_URL \"LaTeX-numbers\""
 
 workflows:
   version: 2
