@@ -62,6 +62,9 @@ makeTildeMidPattern t = "(?<![абвгдеёжзийклмнопрстуфхцч
 addTilde :: Text -> Text
 addTilde = T.replace " " "~"
 
+isRegexp :: Text -> Bool
+isRegexp = T.isPrefixOf "re: "
+
 -- |
 -- >>> replaceProblemTags 1 "\\problem{s}    \\problem{d}" "pure.tex"
 -- "\n\\problem{pure_1}    \n\\problem{pure_2}"

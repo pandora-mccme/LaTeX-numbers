@@ -9,6 +9,7 @@ import Turtle hiding (stdout, stderr)
 import qualified Control.Foldl as Fold
 import qualified Filesystem.Path as Path
 
+import qualified Data.Text as T
 import Data.Text (Text)
 
 import LaTeX.Types
@@ -20,7 +21,7 @@ import LaTeX.Executor
 outputTrimmed :: FilePath -> Trimmed -> IO ()
 outputTrimmed fp (Trimmed h b t) = writeTextFile fp $
   h <> "\n\\begin{document}\n" <> b <> "\n\\end{document}\n" <> t
-    
+
 mapEitherIO :: Show a => [Either a b] -> IO [b]
 mapEitherIO [] = return []
 mapEitherIO (Left str:xs) = print str
@@ -29,24 +30,23 @@ mapEitherIO (Right x:xs) = mapEitherIO xs
                        >>= return . (x:)
 
 readDictionary :: (Text -> Text) -> Bool -> FilePath -> IO Dictionary
-readDictionary modifier regex path = do
+readDictionary modifier defaultRegex path = do
   dict <- fold (input path) Fold.list
       >>= mapEitherIO . rawDict
   return $ Dictionary dict
   where
-    rawDict raw = map (readRegex regex)
-                . map modifier
+    rawDict raw = map (\p -> readRegex (isRegexp p || defaultRegex) p)
+                . map (modifier . T.strip)
                 . filter isPattern
                 . map lineToText
                 $ raw
 
-
 readRack :: Opts -> IO Rack
 readRack Opts{..} = do
-  dictCMD <- readDictionary id optsRegex optsDictionary
+  dictCMD <- readDictionary id False optsDictionary
 
   dictMath <- case optsMathDictionary of
-    Just mdp -> readDictionary id optsRegex mdp
+    Just mdp -> readDictionary id False mdp
     Nothing -> return $ Dictionary []
 
   tildeLeftDictionary <- case optsTildeLeftDictionary of

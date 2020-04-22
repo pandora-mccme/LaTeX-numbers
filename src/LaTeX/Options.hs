@@ -13,7 +13,6 @@ data Opts = Opts {
   , optsTildeMidDictionary   :: Maybe FilePath
   , optsDirectory            :: FilePath
   , optsDebug                :: Bool
-  , optsRegex                :: Bool
   , optsSingleFile           :: Bool
   }
 
@@ -26,5 +25,4 @@ parser = Opts
      <*> optional (optPath "tilde-mid" 'c' "Dictionary with words to be infixed with inextensible space instead of regular.")
      <*> argPath "path" "Directory with LaTeX to fix."
      <*> switch  "debug" 'D' "Write changes to another file (debug mode)."
-     <*> switch  "regex" 'R' "Read dictionary entries as plain regular expressions."
      <*> switch  "single-file" 'S' "Single file operation mode."
