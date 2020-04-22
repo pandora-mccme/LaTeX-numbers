@@ -52,6 +52,11 @@ integerRep = Replacement
       func (s1:s2:_) = addNumericSpaces s1 <> s2
       func (s1:_) = addNumericSpaces s1
 
+placeholderRep :: ReplacementData
+placeholderRep = Replacement
+  [re|(\|\|(\[[^\]]*\])?)|]
+  head
+
 timeRep :: ReplacementData
 timeRep = Replacement
   [re|(\d{1,2}:\d{2}:\d{2}:\d{3}|\d{1,2}:\d{2}:\d{2}|\d{1,2}:\d{2})|]

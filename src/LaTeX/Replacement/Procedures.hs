@@ -48,6 +48,8 @@ modifier Bold = toBold
 -- "$1{,}23$ $1{,}23$ 1{,}23 $1{,}34555$ $1111{,}23$ $111\\,111{,}3$ 1111111{,}3 $1\\,111\\,111{,}3$ d,d"
 -- >>> commonReplacement NormalMode mathRep "\\(33,22\\) $33,22$"
 -- "$33,22$ $33,22$"
+-- >>> commonReplacement NormalMode placeholderRep "x = ||, y = ||[], z = ||[x;y]"
+-- "x = $||$, y = $||[]$, z = $||[x;y]$"
 commonReplacement :: Mode -> ReplacementData -> Text -> Text
 commonReplacement mode rep = replaceAll (modifier mode rep)
 
@@ -80,19 +82,11 @@ clearCyrillicReplacement = foldl (flip (.)) id $
 tildeReplacement :: Dictionary -> Text -> Text
 tildeReplacement (Dictionary tildes) txt = replaceWithList addTilde tildes txt
 
--- First arg -- mode to operate in.
-fractionalUpdateInner :: Mode -> Tagged Text -> Tagged Text
-fractionalUpdateInner NormalMode (Tagged content MathMode) = (Tagged content MathMode)
-fractionalUpdateInner MathMode (Tagged content NormalMode) = (Tagged content NormalMode)
-fractionalUpdateInner NormalMode (Tagged content NormalMode) = (Tagged (commonReplacement NormalMode fractionalRep content) NormalMode)
-fractionalUpdateInner MathMode (Tagged content MathMode) = (Tagged (commonReplacement MathMode fractionalRep content) MathMode)
-fractionalUpdateInner _ a = a
-
 fractionalNormalUpdate :: Tagged Text -> Tagged Text
-fractionalNormalUpdate = fractionalUpdateInner NormalMode
+fractionalNormalUpdate = updateInner NormalMode fractionalRep
 
 fractionalMathUpdate :: Tagged Text -> Tagged Text
-fractionalMathUpdate = fractionalUpdateInner MathMode
+fractionalMathUpdate = updateInner MathMode fractionalRep
 
 mathSpecialUpdate :: Mode -> Tagged Text -> Tagged Text
 mathSpecialUpdate Italic (Tagged content Italic) = (Tagged (commonReplacement Italic mathRep content) Italic)
@@ -101,18 +95,24 @@ mathSpecialUpdate Bold (Tagged content Bold) = (Tagged (commonReplacement Bold m
 mathSpecialUpdate Bold (Tagged content a) = (Tagged content a)
 mathSpecialUpdate _ (Tagged content a) = (Tagged content a)
 
-integerUpdateInner :: Mode -> ReplacementData -> Tagged Text -> Tagged Text
-integerUpdateInner MathMode _rep (Tagged content NormalMode) = (Tagged content NormalMode)
-integerUpdateInner MathMode rep (Tagged content MathMode) = (Tagged (commonReplacement MathMode rep content) MathMode)
-integerUpdateInner NormalMode rep (Tagged content NormalMode) = (Tagged (commonReplacement NormalMode rep content) NormalMode)
-integerUpdateInner NormalMode _rep (Tagged content MathMode) = (Tagged content MathMode)
-integerUpdateInner _ _rep a = a
+updateInner :: Mode -> ReplacementData -> Tagged Text -> Tagged Text
+updateInner MathMode _rep (Tagged content NormalMode) = (Tagged content NormalMode)
+updateInner MathMode rep (Tagged content MathMode) = (Tagged (commonReplacement MathMode rep content) MathMode)
+updateInner NormalMode rep (Tagged content NormalMode) = (Tagged (commonReplacement NormalMode rep content) NormalMode)
+updateInner NormalMode _rep (Tagged content MathMode) = (Tagged content MathMode)
+updateInner _ _rep a = a
 
 integerNormalUpdate :: Tagged Text -> Tagged Text
-integerNormalUpdate = integerUpdateInner NormalMode integerRep
+integerNormalUpdate = updateInner NormalMode integerRep
 
 integerMathUpdate :: Tagged Text -> Tagged Text
-integerMathUpdate = integerUpdateInner MathMode integerRep
+integerMathUpdate = updateInner MathMode integerRep
+
+placeholderNormalUpdate :: Tagged Text -> Tagged Text
+placeholderNormalUpdate = updateInner NormalMode placeholderRep
+
+placeholderMathUpdate :: Tagged Text -> Tagged Text
+placeholderMathUpdate = updateInner MathMode placeholderRep
 
 clearCyrillic :: Tagged Text -> Tagged Text
 clearCyrillic (Tagged txt MathMode) = Tagged (clearCyrillicReplacement txt) MathMode

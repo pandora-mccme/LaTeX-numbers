@@ -51,7 +51,7 @@ mathApply dict mathDict = foldl1 (<>)
               , markMathModeExt mathDict
               , markMathMode . fractionalMathUpdate . fractionalNormalUpdate . clearCyrillic . clearFormatting
               , markMathMode . timeUpdate
-              , return . commonProcedures . integerMathUpdate . integerNormalUpdate
+              , return . commonProcedures . integerMathUpdate . integerNormalUpdate . placeholderMathUpdate . placeholderNormalUpdate
               ]
 
 executeCorrector :: Rack -> Trimmed -> Trimmed
