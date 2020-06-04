@@ -44,9 +44,10 @@ workflows:
   build-and-deploy:
     jobs:
       - suite
-      - deploy:
-          requires:
-            - suite
-          filters:
-            branches:
-              only: master
+# Out of service
+#      - deploy:
+#          requires:
+#            - suite
+#          filters:
+#            branches:
+#              only: master
