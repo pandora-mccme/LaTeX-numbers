@@ -3,7 +3,6 @@
 module LaTeX.Executor where
 
 import Data.Text (Text)
-import qualified Data.Text as T
 
 import LaTeX.Types
 import LaTeX.Demarkation
@@ -55,11 +54,11 @@ mathApply dict mathDict = foldl1 (<>)
               ]
 
 executeCorrector :: Rack -> Trimmed -> Trimmed
-executeCorrector Rack{..} (Trimmed h body t) = Trimmed h new_body t
-  where
-    new_body = taggedBody
-             . tildeUpdate dictTildes
-             . italicApply
-             . boldApply
-             . mathApply dictCMD dictMath
-             $ (Tagged body NormalMode)
+executeCorrector r (Trimmed h body t) = Trimmed h (runCorrector r body) t
+
+runCorrector :: Rack -> Text -> Text
+runCorrector Rack{..} texContents
+  = taggedBody . tildeUpdate dictTildes
+  . italicApply . boldApply
+  . mathApply dictCMD dictMath
+  $ (Tagged texContents NormalMode)

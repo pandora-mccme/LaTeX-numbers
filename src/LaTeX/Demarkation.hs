@@ -17,7 +17,7 @@ replaceDictSpecial (Dictionary insertion) deletion (Dictionary list)
   where
     (pre, del_post) = span (not . (deletion =~)) list
     safeTail [] = []
-    safeTail (x:xs) = xs
+    safeTail (_:xs) = xs
 
 -- $setup
 -- >>> :set -XOverloadedStrings

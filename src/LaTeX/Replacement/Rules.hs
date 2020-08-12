@@ -51,6 +51,7 @@ integerRep = Replacement
     where
       func (s1:s2:_) = addNumericSpaces s1 <> s2
       func (s1:_) = addNumericSpaces s1
+      func _ = error "Bypass warning, must not happen if pcre-heavy is correct."
 
 placeholderRep :: ReplacementData
 placeholderRep = Replacement

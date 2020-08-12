@@ -3,10 +3,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 module LaTeX.Types where
 
-import Data.Semigroup
-
 import Data.Text (Text)
-import qualified Data.Text as T
 
 import Text.Regex.PCRE.Heavy
 
@@ -24,19 +21,23 @@ data Rack = Rack {
 } deriving Show
 
 -- No replacements in comments.
+defaultCmdDictionary :: Dictionary
 defaultCmdDictionary = Dictionary [[re|((?<!\\)\%.+)|]]
 
 -- $$, \(\)
+defaultMathModeDictionary :: Dictionary
 defaultMathModeDictionary = Dictionary [[re|(?<!\\)(\${2}(?s).*?[^\\]\${2})|]
-                                       ,[re|(?<![\$\\])(\$(?s)[^\$]*?[^\\]\$)(?!\$)|] 
+                                       ,[re|(?<![\$\\])(\$(?s)[^\$]*?[^\\]\$)(?!\$)|]
                                        ,[re|(\\\(.+?\\\))|]
                                        ,[re|(\\\[(?s).+?\\\])|]
                                        ]
 
 -- \textbf{}
+boldDictionary :: Dictionary
 boldDictionary = Dictionary [[re|(\\textbf\{.*?\})|]]
 
 -- \textit{}
+italicDictionary :: Dictionary
 italicDictionary = Dictionary [[re|(\\textit\{.*?\})|]]
 
 data Trimmed = Trimmed {

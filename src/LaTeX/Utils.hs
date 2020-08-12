@@ -3,7 +3,6 @@
 module LaTeX.Utils where
 
 import Data.Char
-import Data.List
 import Data.Text (Text)
 import qualified Data.Text as T
 

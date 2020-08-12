@@ -9,67 +9,28 @@ import Turtle hiding (stdout, stderr)
 import qualified Control.Foldl as Fold
 import qualified Filesystem.Path as Path
 
-import qualified Data.Text as T
-import Data.Text (Text)
-
 import LaTeX.Types
 import LaTeX.Options
 import LaTeX.Utils
 import LaTeX.Load
-import LaTeX.Executor
+import LaTeX.Executor (executeCorrector)
+
+import LaTeX.Entry (readRulesExplicit)
 
 outputTrimmed :: FilePath -> Trimmed -> IO ()
-outputTrimmed fp (Trimmed h b t) = writeTextFile fp $
+outputTrimmed fileName (Trimmed h b t) = writeTextFile fileName $
   h <> "\n\\begin{document}\n" <> b <> "\n\\end{document}\n" <> t
 
-mapEitherIO :: Show a => [Either a b] -> IO [b]
-mapEitherIO [] = return []
-mapEitherIO (Left str:xs) = print str
-                         >> mapEitherIO xs
-mapEitherIO (Right x:xs) = mapEitherIO xs
-                       >>= return . (x:)
-
-readDictionary :: (Text -> Text) -> Bool -> FilePath -> IO Dictionary
-readDictionary modifier defaultRegex path = do
-  dict <- fold (input path) Fold.list
-      >>= mapEitherIO . rawDict
-  return $ Dictionary dict
-  where
-    rawDict raw = map (\p -> readRegex (isRegexp p || defaultRegex) p)
-                . map (modifier . T.strip)
-                . filter isPattern
-                . map lineToText
-                $ raw
-
 readRack :: Opts -> IO Rack
-readRack Opts{..} = do
-  dictCMD <- readDictionary id False optsDictionary
-
-  dictMath <- case optsMathDictionary of
-    Just mdp -> readDictionary id False mdp
-    Nothing -> return $ Dictionary []
-
-  tildeLeftDictionary <- case optsTildeLeftDictionary of
-    Just tldp -> readDictionary makeTildeLeftPattern True tldp
-    Nothing -> return $ Dictionary []
-
-  tildeRightDictionary <- case optsTildeRightDictionary of
-    Just trdp -> readDictionary makeTildeRightPattern True trdp
-    Nothing -> return $ Dictionary []
-
-  tildeMidDictionary <- case optsTildeMidDictionary of
-    Just tmdp -> readDictionary makeTildeMidPattern True tmdp
-    Nothing -> return $ Dictionary []
-
-  let dictTildes = tildeLeftDictionary <> tildeRightDictionary <> tildeMidDictionary
-  return Rack{..}
-
+readRack Opts{..} =
+  readRulesExplicit optsDictionary optsMathDictionary
+                    optsTildeLeftDictionary optsTildeMidDictionary optsTildeRightDictionary
 
 run :: Bool -> Rack -> FilePath -> IO ()
 run debug rack path = do
   mcontent <- fold (input path) Fold.list
           >>= return . trimEnds . map lineToText
-  let fp = if debug
+  let filePath = if debug
         then Path.replaceExtension path outputExtensionDebug
         else path
   case mcontent of
@@ -77,7 +38,7 @@ run debug rack path = do
       let fixedContent = content {
           trimmedBody = replaceProblemTags 1 (trimmedBody content) (encodeString (filename path))
         }
-      outputTrimmed fp
+      outputTrimmed filePath
         (executeCorrector rack fixedContent)
     Nothing -> return ()
 
@@ -85,10 +46,10 @@ pprint :: Dictionary -> IO ()
 pprint (Dictionary dict) = sequence_ . map print $ dict
 
 prettyPrint :: Rack -> IO ()
-prettyPrint (Rack c m t) = putStrLn "Commands dictionary:"
-                        >> pprint c
-                        >> putStrLn "\nMath mode dictionary:"
-                        >> pprint m
+prettyPrint (Rack c m _t) = putStrLn "Commands dictionary:"
+                         >> pprint c
+                         >> putStrLn "\nMath mode dictionary:"
+                         >> pprint m
 
 main :: IO ()
 main = do
