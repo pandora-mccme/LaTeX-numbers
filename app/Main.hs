@@ -4,6 +4,7 @@ module Main where
 
 -- Imported as to deal with filesystem instead of directory package.
 import Prelude hiding (FilePath)
+import Data.Tuple.Curry
 import Turtle hiding (stdout, stderr)
 
 import qualified Control.Foldl as Fold
@@ -15,16 +16,11 @@ import LaTeX.Utils
 import LaTeX.Load
 import LaTeX.Executor (executeCorrector)
 
-import LaTeX.Entry (readRulesExplicit)
+import LaTeX.Entry (readRulesExplicit, readConfig)
 
 outputTrimmed :: FilePath -> Trimmed -> IO ()
 outputTrimmed fileName (Trimmed h b t) = writeTextFile fileName $
   h <> "\n\\begin{document}\n" <> b <> "\n\\end{document}\n" <> t
-
-readRack :: Opts -> IO Rack
-readRack Opts{..} =
-  readRulesExplicit optsDictionary optsMathDictionary
-                    optsTildeLeftDictionary optsTildeMidDictionary optsTildeRightDictionary
 
 run :: Bool -> Rack -> FilePath -> IO ()
 run debug rack path = do
@@ -54,8 +50,7 @@ prettyPrint (Rack c m _t) = putStrLn "Commands dictionary:"
 main :: IO ()
 main = do
   opts@Opts{..} <- options "Fix number formatting through directory." parser
-
-  rack <- readRack opts
+  rack <- (readConfig "LaTeX-numbers.ini" >>= uncurryN readRulesExplicit)
 
   if optsDebug
     then prettyPrint rack
