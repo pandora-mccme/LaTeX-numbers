@@ -4,6 +4,7 @@ module Main where
 
 -- Imported as to deal with filesystem instead of directory package.
 import Prelude hiding (FilePath)
+import Data.Maybe (fromMaybe)
 import Data.Tuple.Curry
 import Turtle hiding (stdout, stderr)
 
@@ -50,7 +51,7 @@ prettyPrint (Rack c m _t) = putStrLn "Commands dictionary:"
 main :: IO ()
 main = do
   opts@Opts{..} <- options "Fix number formatting through directory." parser
-  rack <- (readConfig "LaTeX-numbers.ini" >>= uncurryN readRulesExplicit)
+  rack <- (readConfig (fromMaybe "LaTeX-numbers.ini" optsConfig) >>= uncurryN readRulesExplicit)
 
   if optsDebug
     then prettyPrint rack
