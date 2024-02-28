@@ -12,7 +12,6 @@ import qualified Control.Foldl as Fold
 import qualified Filesystem.Path.CurrentOS as Path
 
 import qualified Data.Text as T
-import Data.Text (Text)
 
 import LaTeX.Types
 import LaTeX.Utils
@@ -27,8 +26,8 @@ mapEitherIO (Left str:xs) = print str
 mapEitherIO (Right x:xs) = mapEitherIO xs
                        >>= return . (x:)
 
-readDictionary :: (Text -> Text) -> Bool -> FilePath -> IO Dictionary
-readDictionary modifier defaultRegex path = fold (input path) Fold.list
+readDictionary :: (Text -> Text) -> Bool -> Path.FilePath -> IO Dictionary
+readDictionary modifier defaultRegex path = fold (input $ Path.encodeString path) Fold.list
                                         >>= mapEitherIO . rawDict
                                         >>= return . Dictionary
   where
@@ -38,7 +37,7 @@ readDictionary modifier defaultRegex path = fold (input path) Fold.list
                 . map lineToText
                 $ raw
 
-readConfig :: FilePath -> IO (FilePath, Maybe FilePath, Maybe FilePath, Maybe FilePath, Maybe FilePath)
+readConfig :: FilePath -> IO (Path.FilePath, Maybe Path.FilePath, Maybe Path.FilePath, Maybe Path.FilePath, Maybe Path.FilePath)
 readConfig path = fold (input path) Fold.list >>= return . adjustTypes . map (Path.fromText . lineToText)
   where
     -- FIXME
@@ -53,8 +52,8 @@ readConfig path = fold (input path) Fold.list >>= return . adjustTypes . map (Pa
 readRules :: IO Rack
 readRules = readConfig "LaTeX-numbers.ini" >>= uncurryN readRulesExplicit
 
-readRulesExplicit :: FilePath -> Maybe FilePath
-                  -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath
+readRulesExplicit :: Path.FilePath -> Maybe Path.FilePath
+                  -> Maybe Path.FilePath -> Maybe Path.FilePath -> Maybe Path.FilePath
                   -> IO Rack
 readRulesExplicit mainD mathD leftD midD rightD = do
   dictCMD <- readDictionary id False mainD

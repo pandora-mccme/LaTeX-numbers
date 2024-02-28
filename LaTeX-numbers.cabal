@@ -24,7 +24,7 @@ library
   ghc-options:         -Wall
   build-depends:       base >=4.12
                      , text >=1.2
-                     , turtle < 1.6.0
+                     , turtle <= 1.6.1
                      , foldl
                      , pcre-heavy
                      , split

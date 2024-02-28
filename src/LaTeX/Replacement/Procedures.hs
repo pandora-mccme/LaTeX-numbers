@@ -2,8 +2,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module LaTeX.Replacement.Procedures where
 
-import Data.Monoid ((<>))
-
 import qualified Data.Text as T
 import Data.Text (Text)
 
